@@ -1,5 +1,7 @@
 CACHE MANIFEST
-# Revision 4
+# Revision 5
+
+CACHE:
 css/absolution.css
 css/chordsheet.css
 css/images/selector.png
@@ -10,3 +12,8 @@ js/chord.js
 js/chordsheet.js
 js/jquery-1.5.1.min.js
 js/jquery-ui-1.8.14.custom.min.js
+
+NETWORK:
+*
+http://*
+https://*

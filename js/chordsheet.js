@@ -39,8 +39,16 @@ $(document).ready(function(){
 	if (!window.localStorage) {
 		$('#show-my-sheets').hide()
 	}
-	$('#source').keyup(render)
+	$('#source').bind('input',render)
 
+	//Enable offline...
+	if (window.applicationCache) {
+		$(window.applicationCache).bind('updateready', function() {
+			 window.applicationCache.swapCache()
+		})
+	}
+	
+	
 	$('#show-source').click(function() {
 		$('#source').show()
 		$('#song').hide()

@@ -1,0 +1,7 @@
+DirectoryIndex chordsheet.html
+AddType text/cache-manifest .appcache
+
+<Files chordsheet.appcache>
+	ExpiresActive On
+	ExpiresDefault "access"
+</Files>

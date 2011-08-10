@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html manifest="chordsheet.appcache">
+<html manifest="chordsheet.appscache">
 	<head>
 		<title>Pimp my Chord Sheet</title>
 		
@@ -24,12 +24,13 @@
 				<button id="show-chords">Chords</button>
 				<button id="show-layout">Layout</button>
 				<button id="print-sheet">Print</button>
-				<button id="save-sheet">Save</button>
+				<button id="show-save">Save</button>
 			</div>
 			<div id="info-buttons">
 				<button id="show-about">About</button>
 			</div>
 		</div>
+		<h3 style="color:red;">THIS SITE IS A WORK IN PROGRESS. DON'T EXPECT IT TO WORK FULLY YET</h3>
 		<div id="about" class="popup">
 			<h4>What is this site  for?</h4>
 			<p>
@@ -59,8 +60,10 @@
 				<!-- Facebook -->
 				<iframe src="http://www.facebook.com/plugins/like.php?app_id=259330057429410&amp;width=400&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font=arial&amp;height=35" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:400px; height:35px;" allowTransparency="true"></iframe>				
 				<script type="text/javascript">
-					$.getScript('https://apis.google.com/js/plusone.js')
-					$.getScript('http://platform.twitter.com/widgets.js')
+					setTimeout(function() {
+						$.getScript('https://apis.google.com/js/plusone.js')
+						$.getScript('http://platform.twitter.com/widgets.js')
+					}, 2000);
 				</script>			
 			</div>
 		</div>
@@ -71,7 +74,121 @@
 			</div>
 			<div id="song">
 			</div>
-			<textarea id="source">C x32010    D xx0232
+			<textarea id="source">
+Perfect Day
+by Lou Reed
+
+E  (022100)    C  (x32010)   C#m (x46654)
+Am (x02210)    F  (133211)   F#m (244222)
+D  (xx0232)    Dm (xx0231)
+G  (320033)    A  (x02220)
+
+
+INTRO:
+------
+E Am E Am
+
+
+You can play the intro like this:
+    E           Am        E           Am
+E|--------------------------------------------|
+B|--0-----0---0-1---------0-----0---0-1-------|
+G|--1-------2---2-2-------1-------2---2-2-----|
+D|--2-----------2---2-----2-----------2---2---|
+A|--2-----------0---------2-----------0-------|
+E|--0---------------------0-------------------|
+
+
+
+In the song, whenever you see a 'D' chord that's marked 'D*'
+you should play it like this:
+                      D*
+                  E|--2---------|
+                  B|--3---------|
+                  G|--2---------|
+                  D|--0---------|
+                  A|-----4--2---|
+                  E|------------|
+
+
+VERSE 1:
+--------
+Am       D
+  Just a perfect day,
+G               C
+  drink Sangria in the park
+F                      Dm
+  And then later, when it gets dark,
+      E
+we go home
+
+
+VERSE 2: [play like verse 1]
+--------
+Just a perfect day,
+feed animals in the zoo
+Then later, a movie, too,
+and then home
+
+
+CHORUS:
+-------
+   A           D
+Oh it's such a perfect day,
+C#m                      D    D*
+I'm glad I spent it with you
+A           E
+  Oh such a perfect day,
+         F#m     E       D
+you just keep me hanging on,
+         F#m     E       D          D*
+you just keep me hanging on
+
+
+VERSE 3: [play like verses 1 & 2]
+--------
+Just a perfect day,
+problems all left alone
+Weekenders on our own,
+it's such fun
+
+
+VERSE 4: [play like verses 1,2 & 3]
+--------
+Just a perfect day,
+you made me forget myself
+I thought I was someone else,
+someone good
+
+
+CHORUS:
+-------
+   A           D
+Oh it's such a perfect day,
+C#m                      D    D*
+I'm glad I spent it with you
+A           E
+  Oh such a perfect day,
+         F#m     E       D
+you just keep me hanging on,
+         F#m     E       D    F#m  E  D    F#m  E  D
+you just keep me hanging on
+
+
+OUTRO:
+------
+C#m                 G                  D      D* A
+    You're going to reap just what you sow,
+C#m                 G                  D      D* A
+    You're going to reap just what you sow,
+C#m                 G                  D      D* A
+    You're going to reap just what you sow,
+C#m                 G                  D      D* A
+    You're going to reap just what you sow,
+
+C#m   G   D   D* A
+
+C#m   G   D   D* A
 			</textarea>
 		</div>
 		<div id="chord-settings" class="popup">
@@ -83,6 +200,13 @@
 				<h4>Canvas scale: <span id="canvas-scale">1.0</span></h4>
 				<div id="canvas-scale-slider" class="slider"></div>
 			</div>
+		</div>
+		<div id="my-sheets" class="popup">
+			
+		</div>
+		<div id="save-sheet" class="popup">
+			<label>Name</label>
+			<input type="text" />
 		</div>
 	</body>
 </html>

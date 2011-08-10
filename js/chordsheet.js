@@ -2,12 +2,123 @@ function render() {
 	$('#chords').html('')
 	var rx = Chord.regex
 	var source = $('#source').val()
-	var s
-	while (s = rx.exec(source)) {
-		var canvas = document.createElement('canvas')
-		var chord = new Chord(canvas, s[1], s[2], s[4])
-		$('#chords').append(chord.getImage({scale:scale, canvasScale:canvasScale}))
+	var lines = source.split('\n')
+	var output = []
+	var chords = {}
+	var canvas = document.createElement('canvas')
+	for (var i = 0; i < lines.length; i++) {
+		var line = lines[i]
+		var chordLine = false
+		while (s = rx.exec(line)) {
+			chordLine = true
+			var chord = new Chord(canvas, s[1], s[2], s[4])
+			chords[s[1]] = 1
+			$('#chords').append(chord.getImage({scale:scale, canvasScale:canvasScale}))
+		}
+		if (chordLine) {
+			output.push('CHORDDEF')
+		} else if (line.match(/^\s*(INTRO|VERSE|CHORUS|BRIDGE|PRE-?CHORUS)(\s*\d*):?\s*$/gi)) {
+			output.push('HEADING')
+		} else if (isTabLine(line) && isTabLine(lines[i+1]) && isTabLine(lines[i+2]) && isTabLine(lines[i+3]) ) {
+			//At least a bass tab, 4 lines
+			for (var j = 0; j < 4; j++) {
+				output.push('TABLINE')
+			}
+			
+			//Is it a guitar tab...
+			if (isTabLine(lines[i+4]) && isTabLine(lines[i+5])) {
+				output.push('TABLINE')
+				output.push('TABLINE')
+				i += 2
+			}
+			i += 3
+		} else if (line.match(/^\s*-+\s*$/gi)) {
+			output.push('SEPERATOR')
+		} else if (isChordLine(chords, line)) {
+			output.push('CHORDLINE')
+		} else if (!line.replace(/^\s*|\s*$/g, '')) {
+			output.push('EMPTYLINE')
+		} else {
+			output.push('TEXT')
+		}
 	}
+	$('#song').html('')
+	for (var i in lines) {
+		console.log(output[i] + ' : ' + lines[i])
+		if (output[i] == 'CHORDDEF') {
+			continue
+		} else if (output[i] == 'EMPTYLINE') {
+			$('#song').append($('<br>'))
+		} else if (output[i] == 'TEXT') {
+			$('<span />').addClass('songline').html(lines[i]).appendTo('#song')
+		} else if (output[i] == 'CHORDLINE') {
+			$('<span />').addClass('chordline').html(lines[i]).appendTo('#song')
+		} else if (output[i] == 'HEADING') {
+			$('<h3>').html(lines[i]).appendTo('#song')
+		} else if (output[i] == 'TABLINE') {
+			$('<span />').addClass('tabline').html(lines[i].replace(/-/g, '&#9472;')).appendTo('#song')
+		} else if (output[i] == 'SEPERATOR') {
+			if (output[i-1] != 'HEADING')
+			$('<span />').addClass('songline').html(lines[i]).appendTo('#song')
+		}
+		$('#song').append($('<br>'))
+	}
+	//console.log(output.join('\n'))
+}
+
+function isTabLine(line) {
+	if (!line) {
+		return false;
+	}
+	var hyphenCount = 0;
+	for (var i = 0; i < line.length; i++) {
+		if (line.charAt(i) == '-') {
+			hyphenCount++
+		}
+	}
+	
+	return hyphenCount > 0.4*line.length && line.length > 10
+}
+
+function isChordLine(chordNames, line) {
+	if (line.replace(/^\s*|\s*$/g, '') == '') {
+		return false
+	}
+	
+	if (line.match(/\./)) {
+		return false
+	}
+	
+	if (line.charAt(0) == '|') {
+		return true
+	}
+	
+	var tokens = line.split(/\s+/g)
+	var chordCount = 0
+	var possibleChordCount = 0
+	for (var i in tokens) {
+		var token = tokens[i]
+		if (chordNames[token]) {
+			chordCount++
+		}
+		if (token.match(/^[ABCDEFG]/)) {
+			possibleChordCount++
+		}
+	}
+	
+	console.log('-----')
+	console.log(line)
+	console.log(chordCount)
+	console.log(possibleChordCount)
+	if (chordCount >= 0.5*tokens.length) {
+		
+		return true
+	}
+	
+	if (possibleChordCount >= tokens.length-1){
+		return true
+	}
+	return false
 }
 
 function get(key, defaultVal) {
@@ -24,15 +135,11 @@ function set(key, value) {
 	localStorage[key] = value
 }
 
-function openDialog(id, title, width) {
+function openDialog(id, options) {
+	options.draggable = false;
+	options.resizable = false;
 	$('.popup').dialog('close')
-	$(id).dialog({
-		title : title,
-		draggable : false,
-		resizable : false,
-		modal : false,
-		width : width + 'px'
-	})
+	$(id).dialog(options)
 }
 
 $(document).ready(function(){
@@ -50,7 +157,8 @@ $(document).ready(function(){
 	
 	
 	$('#show-source').click(function() {
-		$('#source').show()
+		var height = $('#song').height()
+		$('#source').css('height', height).show()
 		$('#song').hide()
 		$('#menu button').removeClass('selected')
 		$('#show-source').addClass('selected')
@@ -68,26 +176,34 @@ $(document).ready(function(){
 		$('#show-both').addClass('selected')
 	})
 	
-	$.get('css/chordsheet.css', function(data) {
-		window.css = data
+	$('#show-chords').click(function() {
+		openDialog('#chord-settings', {title:'Chord Settings', width:400})
 	})
 	
-	$('#show-chords').click(function() {
-		//openDialog('#chord-settings', 'Chord Settings', 400)
-		var sheet = $('#sheet').html()
-		var html = '<!DOCTYPE html><html><head><style type="text/css">' + css + '</style></head><body><div id="sheet">'
-			+ sheet + '</div></body></html>'
-			
-		$('<a/>', {
-			href : 'data:text/html,' + html
-		}).html('TESTIT').appendTo('body')
-	})
 	$('#show-about').click(function() {
-		openDialog('#about', 'About Pimp My Chord Sheet', 700)
+		openDialog('#about', {title:'About Pimp My Chord Sheet', width:700})
 	})
 	
 	$('#print-sheet').click(function() {
 		print()
+	})
+	
+	$('#show-save').click(function() {
+		openDialog('#save-sheet', {
+			title:'Save sheet', 
+			width:500,
+			buttons : [
+				{
+					text:"Save",
+					click:function() {
+						var filename = $('#save-sheet input').val()
+						var text = $('#source').val()
+						localStorage[filename] = text
+						$(this).close()
+					}
+				}
+			]
+		});
 	})
 	
 	var scaleSliderValue = parseInt(get('scale',10))

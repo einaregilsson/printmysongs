@@ -272,6 +272,9 @@ Chord.prototype = {
 				if (barFret <= 0) {
 					return;
 				}
+				if (positions.join('') == '-1-10232') { //Special case for the D chord...
+					return
+				}
 				var startIndex = -1;
 
 				for (var i = 0; i < positions.length-2;i++) {

@@ -28,16 +28,29 @@ canvas {margin:auto; display:block;margin-top:50px; background-color:white;}
 
 .chordline {
 	font-weight:bold;
+	font-family:'Lucida Console', monospace;
+	white-space:pre;
 }
 
 .tabline {
 	font-family:'Lucida Console', monospace;
+	line-height:100%;
+	white-space:pre;
+	font-size:15px;
 }
 
 #song {
-	font-size:12px;
+	font-size:14px;
 	padding:10px 30px;
+	white-space:pre;
+	font-family:'Lucida Console', monospace;
 }
+
+#song h3 {
+	font-size:18px;
+	margin-bottom:10px;
+}
+
 .popup { 
 	display:none;
 	font-size:14px;
@@ -122,7 +135,7 @@ canvas {margin:auto; display:block;margin-top:50px; background-color:white;}
 
 #sheet h3 {
 	text-align:left;
-	font-size:14px;
+	font-size:16px;
 }
 
 #sheet #chords {

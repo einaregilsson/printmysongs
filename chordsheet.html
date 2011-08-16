@@ -20,16 +20,16 @@
 				<button id="show-source">Source</button>
 			</div>
 			<div id="action-buttons">
-				<button id="show-chords">Chords</button>
 				<button id="show-layout">Layout</button>
 				<button id="print-sheet">Print</button>
 				<button id="show-save">Save</button>
+				<button id="show-open">Open</button>
 			</div>
 			<div id="info-buttons">
 				<button id="show-about">About</button>
 			</div>
 		</div>
-		<h3 style="color:red;">THIS SITE IS A WORK IN PROGRESS. DON'T EXPECT IT TO WORK FULLY YET</h3>
+		<h3 id="disclaimer">THIS SITE IS A WORK IN PROGRESS. DON'T EXPECT IT TO WORK FULLY YET</h3>
 		<div id="about" class="popup">
 			<h4>What is this site  for?</h4>
 			<p>
@@ -65,7 +65,7 @@
 			<h2>by Einar Egilsson</h2>
 			<div id="chords">
 			</div>
-			<div id="song">
+			<div id="song" class="columns">
 			</div>
 			<textarea id="source">
 Perfect Day
@@ -191,7 +191,9 @@ C#m   G   D   D* A
 C#m   G   D   D* A
 			</textarea>
 		</div>
-		<div id="chord-settings" class="popup">
+		<div id="layout" class="popup">
+			<input type="radio" name="columns" value="1Column"> 1 Column</input>
+			<input type="radio" name="columns" value="2Collumns" checked> 2 Columns</input> 
 			<div>
 				<h4>Scale: <span id="scale">1.0</span></h4>
 				<div id="scale-slider" class="slider"></div>

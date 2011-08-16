@@ -1,5 +1,7 @@
 
 var CHORDDEF  = ' CHORDDEF'
+  , TITLE     = '    TITLE'
+  , ARTIST    = '   ARTIST'
   , HEADING   = '  HEADING'
   , TABLINE   = '  TABLINE'
   , CHORDLINE = 'CHORDLINE'
@@ -9,7 +11,7 @@ var CHORDDEF  = ' CHORDDEF'
   , SKIP      = '     SKIP'
 
 function render() {
-	$('#chords').html('')
+	$('#chords').html('')	
 	var rx = Chord.regex
 	var source = $('#source').val()
 	var tempLines = source.split(/\r?\n/)
@@ -18,7 +20,7 @@ function render() {
 		lines.push({text:tempLines[i]})
 	}
 	var chords = {}
-
+	var foundTitle = false, foundArtist = false, startedChordLines = false
 	var canvas = document.createElement('canvas')
 	for (var i = 0; i < lines.length; i++) {
 		var line = lines[i]
@@ -31,6 +33,15 @@ function render() {
 		}
 		if (chordLine) {
 			line.type = CHORDDEF
+			startedChordLines = true
+		} else if (!startedChordLines && !foundTitle && !line.text.match(/^\s*$/)) {
+			line.type = TITLE
+			line.text = line.text.replace(/^\s*|\s*$/g, '').replace(/^(TITLE|SONG)\s*:\s*/i, '')
+			foundTitle = true
+		} else if (!startedChordLines && !foundArtist && !line.text.match(/^\s*$/)) {
+			line.type = ARTIST
+			line.text = line.text.replace(/^\s*|\s*$/g, '').replace(/^(ARTIST|BAND)\s*:\s*/i, '')
+			foundTitle = true
 		} else if (line.text.match(/^\s*((?:INTRO|OUTRO|VERSE|CHORUS|BRIDGE|PRE-?CHORUS)(?:\s*\d*):?)\s*(?:\[(.*?)\])?$/gi)) {
 			line.text = RegExp.$1
 			line.note = RegExp.$2
@@ -69,8 +80,13 @@ function render() {
 		console.log(line.type + ' : ' + line.text)
 		if (line.type == CHORDDEF) {
 			continue
-		} else if (line.type == EMPTYLINE) {
+		} else if (line.type == EMPTYLINE && $('#song').html() != '') {
 			$('#song').append($('<br>'))
+		} else if (line.type == TITLE) {
+			$('#sheet h1').html(line.text)
+			$('title').html(line.text)
+		} else if (line.type == ARTIST) {
+			$('#sheet h2').html(line.text)
 		} else if (line.type == TEXT) {
 			$('<span />').addClass('songline').html(line.text).appendTo('#song')
 			$('#song').append($('<br>'))
@@ -276,8 +292,8 @@ $(document).ready(function(){
 		}
 	})	
 	
-	$('#show-chords').click(function() {
-		openDialog('#chord-settings', {title:'Chord Settings', width:400})
+	$('#show-layout').click(function() {
+		openDialog('#layout', {title:'Layout Options', width:500})
 	})
 	
 	$('#show-about').click(function() {

@@ -13,6 +13,15 @@ h1,h2,h3,h4,h5,h6 {
 	border-radius:5px;
 }
 
+.columns {
+	column-count:2;
+	-webkit-column-count:2;
+	-moz-column-count:2;
+	column-gap:30px;
+	-webkit-column-gap:30px;
+	-moz-column-gap:30px;
+}
+
 button {
 	border:none;
 	cursor:pointer;
@@ -139,9 +148,13 @@ canvas {margin:auto; display:block;margin-top:50px; background-color:white;}
 }
 
 #sheet #chords {
+	margin:20px;
 	text-align:center;
 }
 
+#disclaimer {
+	color:red;
+}
 #about {
 	width:650px;
 }
@@ -154,7 +167,7 @@ canvas {margin:auto; display:block;margin-top:50px; background-color:white;}
 
 @media print
 {
-	#menu, #source {display:none;}
+	#menu, #source, #disclaimer {display:none;}
 	#sheet { border-style:none; box-shadow:none; border-radius:0px; 
 }
 

@@ -352,6 +352,7 @@ $(document).ready(function(){
 			render()
 		}
 	})
+	
 	$('#canvas-scale-slider').slider({
 		min: 1,
 		max: 50,

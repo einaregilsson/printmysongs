@@ -36,7 +36,7 @@ function render() {
 			chordLine = true
 			var chord = new Chord(canvas, s[1], s[2], s[4])
 			chords[s[1]] = 1
-			$('#chords').append(chord.getImage({scale:chordDiagramSize/10.0, canvasScale:chordDiagramScale/10.0}))
+			$('#chords').append(chord.getImage({scale:options.chordDiagramSize/10.0, canvasScale:options.chordDiagramScale/10.0}))
 		}
 		if (chordLine) {
 			line.type = CHORDDEF
@@ -117,7 +117,7 @@ function render() {
 				tabText.push(lines[i].text)
 				i++
 			}
-			$('<div />').addClass('tabline').css('fontSize', tabSize + 'px').html(tabText.join('\n')).appendTo('#song')
+			$('<div />').addClass('tabline').css('fontSize', options.tablatureSize + 'px').html(tabText.join('\n')).appendTo('#song')
 		} else if (line.type == SEPERATOR) {
 			if (i>0 && lines[i-1].type != HEADING){
 				$('<span />').addClass('songline').html(line.text).appendTo('#song')

@@ -36,7 +36,7 @@ function render() {
 			chordLine = true
 			var chord = new Chord(canvas, s[1], s[2], s[4])
 			chords[s[1]] = 1
-			$('#chords').append(chord.getImage({scale:scale, canvasScale:canvasScale}))
+			$('#chords').append(chord.getImage({scale:chordDiagramSize/10.0, canvasScale:chordDiagramScale/10.0}))
 		}
 		if (chordLine) {
 			line.type = CHORDDEF
@@ -330,52 +330,34 @@ $(document).ready(function(){
 		});
 	})
 	
-	var scaleSliderValue = parseInt(get('scale',10))
-	var canvasScaleSliderValue = parseInt(get('canvasScale',10))
-	window.tabSize = parseInt(get('tabSize',12))
-	window.scale = scaleSliderValue / 10.0
-	window.canvasScale = canvasScaleSliderValue / 10.0
+	window.options = {
+		chordDiagramSize : 10,
+		chordDiagramScale : 10,
+		tablatureSize : 12
+	}
+
+	window.ranges = {
+		chordDiagramSize : [1,50],
+		chordDiagramScale : [1,50],
+		tablatureSize : [6,20]
+	}
 	
-	$('#scale').html(scale)
-	$('#canvas-scale').html(canvasScale)
+	$.each( options, function(optName, value){
+		options[optName] = parseInt(get(optName, value))
+		$('#'+key+' h4 span').html(options[optName])
+
+		$('#' + key + ' .slider').slider({
+			min: ranges[optName][0],
+			max: ranges[optName][1],
+			value: options[optName],
+			slide: function(e,ui){
+				options[optName] = ui.value
+				set(optName, ui.value)
+				$('#'+optName + ' h4 span').html(ui.value)
+				render()
+			}
+		})
+	})
 
 	render()
-	$('#scale-slider').slider({
-		min: 1,
-		max: 50,
-		value: scaleSliderValue,
-		slide: function(e,ui){
-			var val = ui.value/10.0
-			window.scale = val
-			set('scale', ui.value)
-			$('#scale').html(val)
-			render()
-		}
-	})
-	
-	$('#canvas-scale-slider').slider({
-		min: 1,
-		max: 50,
-		value: canvasScaleSliderValue,
-		slide: function(e,ui){
-			var val = ui.value/10
-			window.canvasScale = val
-			set('canvasScale', ui.value)
-			$('#canvas-scale').html(val)
-			render()
-		}
-	})
-	
-	$('#tab-scale-slider').slider({
-		min: 6,
-		max: 20,
-		value: tabSize,
-		slide: function(e,ui){
-			window.tabSize = ui.value
-			set('tabSize', ui.value)
-			$('#tab-scale').html(ui.value)
-			render()
-		}
-	})
-	
 })

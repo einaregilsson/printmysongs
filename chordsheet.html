@@ -14,7 +14,6 @@
 		<script src="js/chordsheet.js"></script>
 	</head>
 	<body>
-		<!-- TEST4 -->
 		<div id="menu">
 			<div id="nav-buttons">
 				<button id="show-sheet" class="selected">Sheet</button>
@@ -33,43 +32,17 @@
 			</div>
 		</div>
 		<h3 id="disclaimer">THIS SITE IS A WORK IN PROGRESS. DON'T EXPECT IT TO WORK FULLY YET</h3>
-		<div id="about" class="popup">
-			<h4>What is this site  for?</h4>
-			<p>
-				This site was made because I like to print out songs that I get on the internet,
-				and I was sick of printing out ugly text files with monospace fonts. I 
-				figured I could probably come up with something better, and this is the result.
-			</p>
-			<h4>How do I use it?</h4>
-			<p>
-				Press 'Show: Source' up in the menu. That will give you a large textbox on 
-				the page. Paste your chord sheet into that. The site should be able to figure
-				the formatting out mostly by itself, though you might have to help it a bit.
-				The source for the initial song on the page will show you what's possible.
-			</p>
-			<h4>Help me promote it</h4>
-			<p>
-				If you find the site useful, please help me out by tweeting about it, giving
-				it a Facebook like, or posting it to any other site where you think someone
-				might find it useful. I appreciate it. Oh, and you should probably  
-				<a href="http://twitter.com/einaregilsson">follow me on Twitter</a>.
-			</p>
-			<div id="social-media">
-				<!-- Google -->
-				<g:plusone size="medium"></g:plusone>
-				<!-- Twitter -->
-				<a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="einaregilsson">Tweet</a>
-				<!-- Facebook -->
-				<iframe src="http://www.facebook.com/plugins/like.php?app_id=259330057429410&amp;width=400&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font=arial&amp;height=35" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:400px; height:35px;" allowTransparency="true"></iframe>				
-			</div>
-		</div>
 		<div id="sheet">
-			<h1>Pimp my Chordsheet</h1>
-			<h2>by Einar Egilsson</h2>
+			<h1 id="song-title">Pimp my Chordsheet</h1>
+			<h2 id="song-artist">by Einar Egilsson</h2>
+
 			<div id="chords">
 			</div>
+
 			<div id="song" class="columns">
 			</div>
+			
+			
 			<textarea id="source">
 Perfect Day
 by Lou Reed
@@ -180,18 +153,52 @@ C#m   G   D   D* A
 C#m   G   D   D* A
 			</textarea>
 		</div>
+		
+		<!-- ABOUT WINDOW -->
+		<div id="about" class="popup">
+			<h4>What is this site  for?</h4>
+			<p>
+				This site was made because I like to print out songs that I get on the internet,
+				and I was sick of printing out ugly text files with monospace fonts. I 
+				figured I could probably come up with something better, and this is the result.
+			</p>
+			<h4>How do I use it?</h4>
+			<p>
+				Press 'Show: Source' up in the menu. That will give you a large textbox on 
+				the page. Paste your chord sheet into that. The site should be able to figure
+				the formatting out mostly by itself, though you might have to help it a bit.
+				The source for the initial song on the page will show you what's possible.
+			</p>
+			<h4>Help me promote it</h4>
+			<p>
+				If you find the site useful, please help me out by tweeting about it, giving
+				it a Facebook like, or posting it to any other site where you think someone
+				might find it useful. I appreciate it. Oh, and you should probably  
+				<a href="http://twitter.com/einaregilsson">follow me on Twitter</a>.
+			</p>
+			<div id="social-media">
+				<!-- Google -->
+				<g:plusone size="medium"></g:plusone>
+				<!-- Twitter -->
+				<a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="einaregilsson">Tweet</a>
+				<!-- Facebook -->
+				<iframe src="http://www.facebook.com/plugins/like.php?app_id=259330057429410&amp;width=400&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font=arial&amp;height=35" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:400px; height:35px;" allowTransparency="true"></iframe>				
+			</div>
+		</div>
+
+		<!-- LAYOUT WINDOW -->
 		<div id="layout" class="popup">
-			<div>
-				<h4>Chord Diagram Size: <span id="scale">1.0</span></h4>
-				<div id="scale-slider" class="slider"></div>
+			<div id="chordDiagramSize">
+				<h4>Chord Diagram Size: <span>1.0</span></h4>
+				<div class="slider"></div>
 			</div>
-			<div>
-				<h4>Chord Diagram Scaling: <span id="canvas-scale">1.0</span></h4>
-				<div id="canvas-scale-slider" class="slider"></div>
+			<div id="chordDiagramScale">
+				<h4>Chord Diagram Scaling: <span>1.0</span></h4>
+				<div class="slider"></div>
 			</div>
-			<div>
-				<h4>Tablature Size: <span id="tab-scale">12</span></h4>
-				<div id="tab-scale-slider" class="slider"></div>
+			<div id="tablatureSize">
+				<h4>Tablature Size: <span>12</span></h4>
+				<div class="slider"></div>
 			</div>
 			<div>
 				<h4>Text Columns</h4>
@@ -199,9 +206,12 @@ C#m   G   D   D* A
 				<input type="radio" name="columns" value="2" checked> 2 Columns
 			</div>
 		</div>
+
+		<!-- OPEN FILE DIALOG -->
 		<div id="my-sheets" class="popup">
-			
 		</div>
+		
+		<!-- SAVE FILE DIALOG -->
 		<div id="save-sheet" class="popup">
 			<label>Name</label>
 			<input type="text" />

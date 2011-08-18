@@ -12,6 +12,13 @@ var CHORDDEF  = ' CHORDDEF'
 
 function render() {
 	$('#chords').html('')	
+	var colCount = parseInt($('input[@name=columns]:checked').val())
+	if (colCount == 1) {
+		$('#song').removeClass('columns')
+	} else { 
+		$('#song').addClass('columns')
+	}
+	
 	var rx = Chord.regex
 	var source = $('#source').val()
 	var tempLines = source.split(/\r?\n/)
@@ -110,7 +117,7 @@ function render() {
 				tabText.push(lines[i].text)
 				i++
 			}
-			$('<div />').addClass('tabline').html(tabText.join('\n')).appendTo('#song')
+			$('<div />').addClass('tabline').css('fontSize', tabSize + 'px').html(tabText.join('\n')).appendTo('#song')
 		} else if (line.type == SEPERATOR) {
 			if (i>0 && lines[i-1].type != HEADING){
 				$('<span />').addClass('songline').html(line.text).appendTo('#song')
@@ -270,6 +277,7 @@ $(document).ready(function(){
 		$('#show-my-sheets').hide()
 	}
 	$('#source').bind('input',render)
+	$('input[name="columns"]').click(render)
 
 	//Enable offline...
 	if (window.applicationCache) {
@@ -324,8 +332,10 @@ $(document).ready(function(){
 	
 	var scaleSliderValue = parseInt(get('scale',10))
 	var canvasScaleSliderValue = parseInt(get('canvasScale',10))
+	window.tabSize = parseInt(get('tabSize',12))
 	window.scale = scaleSliderValue / 10.0
 	window.canvasScale = canvasScaleSliderValue / 10.0
+	
 	$('#scale').html(scale)
 	$('#canvas-scale').html(canvasScale)
 
@@ -354,4 +364,17 @@ $(document).ready(function(){
 			render()
 		}
 	})
+	
+	$('#tab-scale-slider').slider({
+		min: 6,
+		max: 20,
+		value: tabSize,
+		slide: function(e,ui){
+			window.tabSize = ui.value
+			set('tabSize', ui.value)
+			$('#tab-scale').html(ui.value)
+			render()
+		}
+	})
+	
 })

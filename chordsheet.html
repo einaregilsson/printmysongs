@@ -22,8 +22,10 @@
 			<div id="action-buttons">
 				<button id="show-layout">Layout</button>
 				<button id="print-sheet">Print</button>
+				<!-- Wait with this for now
 				<button id="show-save">Save</button>
 				<button id="show-open">Open</button>
+				-->
 			</div>
 			<div id="info-buttons">
 				<button id="show-about">About</button>
@@ -100,19 +102,7 @@ A||--2-----------0-----||--2-----------0-------||
 E||--0-----------------||--0-------------------||
 
 
-In the song, whenever you see a 'D' chord that's marked 'D*'
-you should play it like this:
-                      D*
-                  E|--2---------|
-                  B|--3---------|
-                  G|--2---------|
-                  D|--0---------|
-                  A|-----4--2---|
-                  E|------------|
-
-
 VERSE 1:
---------
 Am       D
   Just a perfect day,
 G               C
@@ -124,7 +114,6 @@ we go home
 
 
 VERSE 2: [play like verse 1]
---------
 Just a perfect day,
 feed animals in the zoo
 Then later, a movie, too,
@@ -132,7 +121,6 @@ and then home
 
 
 CHORUS:
--------
    A           D
 Oh it's such a perfect day,
 C#m                      D    D*
@@ -192,15 +180,22 @@ C#m   G   D   D* A
 			</textarea>
 		</div>
 		<div id="layout" class="popup">
-			<input type="radio" name="columns" value="1Column"> 1 Column</input>
-			<input type="radio" name="columns" value="2Collumns" checked> 2 Columns</input> 
 			<div>
-				<h4>Scale: <span id="scale">1.0</span></h4>
+				<h4>Chord Diagram Size: <span id="scale">1.0</span></h4>
 				<div id="scale-slider" class="slider"></div>
 			</div>
 			<div>
-				<h4>Canvas scale: <span id="canvas-scale">1.0</span></h4>
+				<h4>Chord Diagram Scaling: <span id="canvas-scale">1.0</span></h4>
 				<div id="canvas-scale-slider" class="slider"></div>
+			</div>
+			<div>
+				<h4>Tablature Size: <span id="tab-scale">12</span></h4>
+				<div id="tab-scale-slider" class="slider"></div>
+			</div>
+			<div>
+				<h4>Text Columns</h4>
+				<input type="radio" name="columns" value="1"> 1 Column
+				<input type="radio" name="columns" value="2" checked> 2 Columns
 			</div>
 		</div>
 		<div id="my-sheets" class="popup">

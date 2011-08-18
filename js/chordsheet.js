@@ -344,9 +344,9 @@ $(document).ready(function(){
 	
 	$.each( options, function(optName, value){
 		options[optName] = parseInt(get(optName, value))
-		$('#'+key+' h4 span').html(options[optName])
+		$('#'+optName+' h4 span').html(options[optName])
 
-		$('#' + key + ' .slider').slider({
+		$('#' + optName + ' .slider').slider({
 			min: ranges[optName][0],
 			max: ranges[optName][1],
 			value: options[optName],

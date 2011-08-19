@@ -160,6 +160,14 @@ input[name="columns"] {
 	text-align:center;
 }
 
+.song-part {
+	border:solid 0px black;
+	-webkit-break-inside:avoid;
+	-moz-break-inside:avoid;
+	break-inside:avoid;
+	page-break-inside:avoid;
+}
+
 #disclaimer {
 	color:red;
 }

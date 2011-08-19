@@ -110,29 +110,42 @@ function renderChords(lines) {
 function renderSheet(lines) {
 	
 	$('#song').html('')
+	var currentDiv
 	for (var i = 0; i < lines.length; i++) {
 		var line = lines[i]
 		console.log(line.type + ' : ' + line.text)
+		var endCurrentDiv = true
+		if (line.type == HEADING || line.type == TEXT || line.type == CHORDLINE) {
+			currentDiv = currentDiv || $('<div />').addClass('song-part').appendTo('#song')
+			endCurrentDiv = false
+		}
+		
 		if (line.type == CHORDDEF) {
 			continue
 		} else if (line.type == EMPTYLINE && $('#song').html() != '') {
-			$('#song').append($('<br>'))
+		
+			if (lines[i-1] && lines[i-1].type == HEADING) {
+				endCurrentDiv = false
+				currentDiv.append($('<br>'))
+			} else {
+				$('#song').append($('<br>'))
+			}
 		} else if (line.type == TITLE) {
 			$('#sheet h1').html(line.text)
 			$('title').html(line.text)
 		} else if (line.type == ARTIST) {
 			$('#sheet h2').html(line.text)
 		} else if (line.type == TEXT) {
-			$('<span />').addClass('songline').html(line.text).appendTo('#song')
-			$('#song').append($('<br>'))
+			$('<span />').addClass('songline').html(line.text).appendTo(currentDiv)
+			currentDiv.append($('<br>'))
 		} else if (line.type == CHORDLINE) {
 			if (lines[i+1] && lines[i+1].type == TABLINE) {
 				continue //The tab will take this with it
 			}
-			$('<span />').addClass('chordline').html(line.text).appendTo('#song')
-			$('#song').append($('<br>'))
+			$('<span />').addClass('chordline').html(line.text).appendTo(currentDiv)
+			$(currentDiv).append($('<br>'))
 		} else if (line.type == HEADING) {
-			$('<h3>').html(line.text).appendTo('#song')
+			$('<h3>').html(line.text).appendTo(currentDiv)
 		} else if (line.type == TABLINE) {
 			var tabText = []
 			if (lines[i-1] && lines[i-1].type == CHORDLINE) {
@@ -150,7 +163,13 @@ function renderSheet(lines) {
 			if (i>0 && lines[i-1].type != HEADING){
 				$('<span />').addClass('songline').html(line.text).appendTo('#song')
 				$('#song').append($('<br>'))
+			} else {
+				endCurrentDiv = false
 			}
+		}
+		
+		if (endCurrentDiv) {
+			currentDiv = null
 		}
 	}
 	//console.log(output.join('\n'))

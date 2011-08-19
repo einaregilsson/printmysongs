@@ -10,15 +10,8 @@ var CHORDDEF  = ' CHORDDEF'
   , EMPTYLINE = 'EMPTYLINE'
   , SKIP      = '     SKIP'
 
-function render() {
-	$('#chords').html('')	
-	var colCount = parseInt($('input[@name=columns]:checked').val())
-	if (colCount == 1) {
-		$('#song').removeClass('columns')
-	} else { 
-		$('#song').addClass('columns')
-	}
-	
+
+function parse() {
 	var rx = Chord.regex
 	var source = $('#source').val()
 	var tempLines = source.split(/\r?\n/)
@@ -33,10 +26,13 @@ function render() {
 		var line = lines[i]
 		var chordLine = false
 		while (s = rx.exec(line.text)) {
+			if (!line.chords) {
+				line.chords = []
+			}
 			chordLine = true
 			var chord = new Chord(canvas, s[1], s[2], s[4])
 			chords[s[1]] = 1
-			$('#chords').append(chord.getImage({scale:options.chordDiagramSize/10.0, canvasScale:options.chordDiagramScale/10.0}))
+			line.chords.push(chord)
 		}
 		if (chordLine) {
 			line.type = CHORDDEF
@@ -55,7 +51,6 @@ function render() {
 			line.type = HEADING
 		} else if (isTabLine(line) && isTabLine(lines[i+1]) && isTabLine(lines[i+2]) && isTabLine(lines[i+3]) ) {
 			//At least a bass tab, 4 lines
-			//alert('HERE')
 			for (var j = 0; j < 4; j++) {
 				lines[i+j].type = TABLINE
 			}
@@ -81,6 +76,39 @@ function render() {
 			line.type = TEXT
 		}
 	}
+	return lines;
+}
+function render() {
+	var lines = parse()
+	renderChords(lines)
+	renderColumns()
+	renderSheet(lines)
+}
+
+function renderColumns() {
+	var colCount = parseInt($('input[@name=columns]:checked').val())
+	if (colCount == 1) {
+		$('#song').removeClass('columns')
+	} else { 
+		$('#song').addClass('columns')
+	}
+}
+
+function renderChords(lines) {
+	$('#chords').html('')	
+	for (var i = 0; i < lines.length; i++) {
+		var line = lines[i]
+		if (line.type == CHORDDEF) {
+			for (var j = 0; j < line.chords.length; j++) {
+				var chord = line.chords[j]
+				$('#chords').append(chord.getImage({scale:options.chordDiagramSize/10.0, canvasScale:options.chordDiagramScale/10.0}))
+			}
+		}
+	}
+}
+
+function renderSheet(lines) {
+	
 	$('#song').html('')
 	for (var i = 0; i < lines.length; i++) {
 		var line = lines[i]
@@ -277,7 +305,7 @@ $(document).ready(function(){
 		$('#show-my-sheets').hide()
 	}
 	$('#source').bind('input',render)
-	$('input[name="columns"]').click(render)
+	$('input[name="columns"]').click(renderColumns)
 
 	//Enable offline...
 	if (window.applicationCache) {
@@ -285,7 +313,6 @@ $(document).ready(function(){
 			 window.applicationCache.swapCache()
 		})
 	}
-	
 	
 	$('#show-source').click(showSource)
 	$('#show-sheet').click(showSheet)
@@ -345,7 +372,6 @@ $(document).ready(function(){
 	$.each( options, function(optName, value){
 		options[optName] = parseInt(get(optName, value))
 		$('#'+optName+' h4 span').html(options[optName])
-
 		$('#' + optName + ' .slider').slider({
 			min: ranges[optName][0],
 			max: ranges[optName][1],
@@ -354,10 +380,13 @@ $(document).ready(function(){
 				options[optName] = ui.value
 				set(optName, ui.value)
 				$('#'+optName + ' h4 span').html(ui.value)
-				render()
+				if (optName == 'chordDiagramScale' || optName == 'chordDiagramSize') {
+					renderChords(parse())
+				} else if (optName == 'tablatureSize') {
+					$('.tabline').css('fontSize', ui.value + 'px')
+				}
 			}
 		})
 	})
-
 	render()
 })

@@ -1,140 +1,115 @@
-CELL_WIDTH = 10
-CELL_HEIGHT = 10
-LINE_WIDTH = 1
-HALF_LINE_WIDTH = LINE_WIDTH / 2.0
-DOT_RADIUS = Math.floor(0.45*CELL_WIDTH)
-NUT_SIZE = 3
-DOT_WIDTH = 2*DOT_RADIUS
-X = CELL_WIDTH*2
-Y = CELL_HEIGHT*2
 
-FRET_COUNT = 5
-STRING_COUNT = 6
-MUTED = -1
 
-function Chord(canvas, name, positions, fingering) {
-	this.init(canvas, name, positions, fingering)
+function Chord(name, positions, fingering) {
+	this.init(name, positions, fingering);
 }
 
-//Matches a named chord with optional fingerings
-//             |Chord name,must|       |Small    |   Large chord with seperators   |               |Optional|
-//             |start with note|       |Chord    |   dashes, dots or spaces        |               |Fingerings
-Chord.regex = /([ABCDEFG][^\s]*)\s+\(?([0-9xX]{6}|(?:x|X|\d\d?)(?:[-\. ](?:x|\d\d?)){5})\b\)?(\s*\[([T\d]+)\])?/g
+//Defaults
 
+Chord.defaultSize = 3;
+Chord.defaultRenderer = 'canvas'; 
+Chord.serverSideRenderUrl = 'http://chords.apphb.com/{name}.{format}?p={positions}&s={size}&f={fingers}';
+Chord.serverSideRenderFormat = 'png';
+Chord.renderOnLoad = true;
+Chord.renderPreference = ['canvas', 'svg', 'vml', 'url'];
+var MUTED = -1;
+
+
+//Matches a named chord with optional fingerings
+//              |Small      |Large chord with seperators            |        |Optional|
+//              |Chord      |dashes, dots or spaces                 |        |Fingerings
+//Chord.regex = /([0-9xX]{4,6}|(?:x|X|\d\d?)(?:[-\. ](?:x|\d\d?)){3,5})\b(?:\s*\[([T\d]+)\])?(?:\s+(\d+))?(?:\s+(.*)\b)?/g;
+Chord.regex = /([ABCDEFG][^\s]*)\s+\(?([0-9xX]{6}|(?:x|X|\d\d?)(?:[-\. ](?:x|\d\d?)){5})\b\)?(\s*\[([T\d]+)\])?/g
 Chord.prototype = {
-	init : function(canvas, name, positions, fingers, scale) {
-		this.canvas = canvas
-		this.parse(positions, fingers)
-		this.name = name
-	},
-	
-	calculateDimensions : function() {
-		var sc = this.scale
-		var s = function(v) { return Math.round(sc*v,0) }
-		this.cellWidth = s(CELL_WIDTH)
-		this.cellHeight = s(CELL_HEIGHT)
-		this.lineWidth = Math.max(s(LINE_WIDTH),1)
-		this.halfLineWidth = this.lineWidth/2.0
-		this.nutSize = s(NUT_SIZE)
-		this.dotRadius = s(DOT_RADIUS)
-		this.dotWidth = 2*this.dotRadius
-		this.boxWidth = (STRING_COUNT-1)*this.cellWidth
-		this.boxHeight = FRET_COUNT*this.cellHeight
-		this.nameFontSize = 2*this.cellHeight
-		this.nameFont = this.nameFontSize + 'px Arial'
-		this.ctx.font = this.nameFont
-		this.ctx.textBaseline = 'top'
-		var nameWidth = this.ctx.measureText(this.name).width + 4
-		var stdWidth = 1.7*this.boxWidth
-		this.width = Math.max(nameWidth,stdWidth)*this.canvasScale
-		this.height = this.boxHeight*1.9*this.canvasScale
-		this.translateX = Math.round((this.width-this.canvasScale*this.boxWidth)/2,0)
-		this.translateY = Math.round(this.canvasScale*(this.nutSize+this.dotWidth+this.nameFontSize),0)
-		if (this.lineWidth%2 ==1) {
-			this.translateX+=0.5
-			this.translateY+=0.5
-		}
+	init : function(name, positions, fingers) {
+		this.parse(positions, fingers);
+		this.name = name;
+		this.rawPositions = positions;
+		this.rawFingers = fingers || '';
 	},
 	
 	parse : function(frets, fingers) {
-		this.positions = []
+		this.positions = [];
 		var raw = [];
 		if (frets.match(/^[0-9xX]{1,6}$/)) {
 			for (var i = 0; i < frets.length;i++) {
-				raw.push(frets.charAt(i))
+				raw.push(frets.charAt(i));
 			}
 		} else {
-			raw = frets.split(/[^\dxX]/)
+			raw = frets.split(/[^\dxX]/);
 		}
-		
-		var maxFret = 0 
-		var minFret = 1000
+		this.stringCount = raw.length;
+		if (this.stringCount == 4) {
+			this.fretCount = 4;
+		} else {
+			this.fretCount = 5;
+		}
+		var maxFret = 0;
+		var minFret = 1000;
+				
 		for (var i in raw) {
-			var c = raw[i]
+			var c = raw[i];
 			if (c.toLowerCase() == 'x') {
-				this.positions.push(MUTED)
+				this.positions.push(MUTED);
 			} else {
-				var fret = parseInt(c)
+				var fret = parseInt(c);
 				if (fret > 0 && fret < minFret) {
-					minFret = fret
+					minFret = fret;
 				}
-				maxFret = Math.max(maxFret, fret)
-				this.positions.push(fret)
+				maxFret = Math.max(maxFret, fret);
+				this.positions.push(fret);
 			}
 		}
-		if (maxFret <=FRET_COUNT) {
-			this.startFret = 1
+		if (maxFret <=this.fretCount) {
+			this.startFret = 1;
 		} else {
-			this.startFret = minFret
+			this.startFret = minFret;
 		}
-		this.fingerings = []
+		this.fingerings = [];
 		if (!fingers) {
-			return
+			return;
 		}
-		var j = 0
+		var j = 0;
 		for (var i = 0; i < fingers.length; i++) {
 			for (;j<this.positions.length;j++) {
 				if (this.positions[j] <= 0) {
-					this.fingerings.push(null)
+					this.fingerings.push(null);
 				} else {
-					this.fingerings.push(fingers[i])
-					j++
-					break
+					this.fingerings.push(fingers[i]);
+					j++;
+					break;
 				}
 			}
 		}
 	},
 	
-	drawMutedAndOpenStrings : function() {
-		with(this) {
-			for (var i in positions) {
-				var pos = positions[i]
-				var x = i*cellWidth
-				var y = -nutSize*1.3 - dotRadius
-				var y = -nutSize*1.3 - dotRadius
-				if (startFret > 1) {
-					y+=nutSize
-				}
-				if (pos == MUTED) {
-					drawCross(x,y,dotRadius)
-				} else if (pos == 0) {
-					drawCircle(x,y,dotRadius)
-				}
+	drawMutedAndOpenStrings : function(info) {
+		var r = this.renderer;
+		for (var i in this.positions) {
+			var pos = this.positions[i];
+			var x = info.boxStartX+i*info.cellWidth;
+			var y = info.nameFontSize + info.nameFontPaddingBottom + info.dotRadius-2;
+			if (this.startFret > 1) {
+				y+=info.nutSize;
+			}
+			if (pos == MUTED) {
+				this.drawCross(info,x,y,info.dotRadius);
+			} else if (pos == 0) {
+				r.circle(x,y,info.dotRadius,false);
 			}
 		}
 	},
 	
-	drawPositions : function() {
-		with(this) {
-			for (var i in positions) {
-				var pos = positions[i]
-				if (pos > 0) {
-					var relativePos = pos - startFret+1
-					var x = i*cellWidth
-					if (relativePos <= 5) {
-						var y = relativePos*cellHeight-(cellHeight/2)
-						drawCircle(x,y,dotRadius,true)
-					}
+	drawPositions : function(info) {
+		var r = this.renderer;
+		for (var i in this.positions) {
+			var pos = this.positions[i];
+			if (pos > 0) {
+				var relativePos = pos - this.startFret+1;
+				var x = info.boxStartX+i*info.cellWidth;
+				if (relativePos <= 5) {
+					var y = info.boxStartY+relativePos*info.cellHeight-(info.cellHeight/2)
+					r.circle(x,y,info.dotRadius,true);
 				}
 			}
 		}
@@ -144,201 +119,473 @@ Chord.prototype = {
 		return 'Chord';
 	},
 	
-	drawFretGridAndNut : function() {
-		with(this) {
-			ctx.beginPath()
-			var width = (STRING_COUNT-1)*cellWidth
-			for (var i = 0; i <= 5; i++) {
-				var x = i*cellWidth
-				ctx.moveTo(x, 0)
-				ctx.lineTo(x, FRET_COUNT*cellHeight)
-				var y = i*cellHeight
-				ctx.moveTo(0, y)
-				ctx.lineTo(width, y)
-			}
-			ctx.stroke()
-			if (startFret == 1) {
-				ctx.save()
-				ctx.beginPath()
-				ctx.lineWidth = nutSize
-				ctx.lineCap = 'butt'
-				ctx.moveTo(-halfLineWidth,-0.5*nutSize)
-				ctx.lineTo(boxWidth+halfLineWidth,-0.5*nutSize)
-				ctx.stroke()
-				ctx.restore()
-			} else {
-				ctx.font = cellHeight + 'px Arial'
-				ctx.textBaseline = 'middle'
-				var x = -ctx.measureText(startFret+'').width-2*lineWidth - dotRadius
-				ctx.fillText(startFret, x,cellHeight/2)
-			}
+	drawFretGrid : function(info) {
+		var r = this.renderer;
+		var width = (this.stringCount-1)*info.cellWidth;
+		for (var i = 0; i <= this.stringCount-1; i++) {
+			var x = info.boxStartX+i*info.cellWidth;
+			r.line(x,info.boxStartY,x,info.boxStartY+this.fretCount*info.cellHeight, info.lineWidth, 'square');
+		}
+		
+		for (var i = 0; i <= this.fretCount; i++) {
+			var y = info.boxStartY+i*info.cellHeight;
+			r.line(info.boxStartX,y,info.boxStartX+width,y, info.lineWidth, 'square');
 		}
 	},
 	
-	drawName : function() {
-		with (this) {
-			ctx.font = nameFont
-			var nameWidth = ctx.measureText(name)
-			ctx.textAlign = 'center'
-			ctx.textBaseline = 'bottom'
-			ctx.fillText(name, width/2, -nutSize-dotWidth)
+	drawNut : function(info) {
+		var r = this.renderer;
+		if (this.startFret == 1) {
+			r.rect(info.boxStartX, info.boxStartY-info.nutSize,info.boxWidth,info.nutSize);
+		} else {
+			r.text(info.boxStartX-info.dotRadius, info.boxStartY + info.cellHeight / 2.0, this.startFret+'', info.font, info.cellHeight, 'middle', 'right');
 		}
 	},
 	
-	draw : function(options) {
-		options = options || {}
-		with(this) {
-			this.scale = options.scale || 1
-			this.canvasScale = options.canvasScale || 1
-			this.ctx = canvas.getContext('2d')
-			calculateDimensions()
-			canvas.width = width
-			canvas.height = height
-			
-			//ctx.strokeRect(0.5,0.5,width-1,height-1)
-			
-			ctx.lineJoin = 'miter'
-			ctx.lineWidth = lineWidth
-			ctx.lineCap = 'square'
-			ctx.strokeStyle = 'black'
-			ctx.translate(translateX,translateY)
-			if (canvasScale != 1) {
-				ctx.scale(canvasScale, canvasScale)
-			}
-			drawFretGridAndNut()
-			drawName()
-			drawMutedAndOpenStrings()
-			drawPositions()
-			drawFingerings()
-			drawBars()
+	drawName : function(info) {
+		var r = this.renderer;
+		r.text(info.width/2.0, 0, this.name, info.font, info.nameFontSize, 'top', 'center');
+	},
+	
+	calculateDimensions : function(scale) {
+		var info ={};
+		info.scale = scale;
+		info.positions = this.rawPositions;
+		info.fingers = this.rawFingers;
+		info.name = this.name;
+		info.cellWidth = scale + 3;
+		info.cellHeight = info.cellWidth;
+		info.nutSize = Math.round(info.cellHeight * 0.4);
+		info.lineWidth = Math.max(1.0,Math.floor(info.cellHeight/6.0));
+		info.dotRadius = info.cellWidth/2-1;
+		if (scale <= 4) {
+			info.dotRadius++;
 		}
-	},
-	
-	getImage : function(options) {
-	
-		this.draw(options)
-		var img = document.createElement('img')
-		img.src = this.canvas.toDataURL()
-		return img
-	},
-	
-	drawCircle : function(x,y,radius, fillCircle) {
-		with(this.ctx) {
-			beginPath()
-			if (!fillCircle) {
-				radius -= lineWidth
-			}
-			arc(x,y,radius,0,2*Math.PI,false)
-			if (fillCircle) {
-				fill()
-			} else {
-				stroke()
-			}
+		info.dotWidth = 2*info.dotRadius;
+		info.font = 'Arial';
+		info.nameFontSize = Math.round(1.8*info.cellHeight);
+		if (scale <= 4) {
+			info.nameFontSize +=3;
 		}
+		info.nameFontPaddingBottom = 4;
+		info.fingerFontSize = Math.round(info.cellHeight*1.2);
+		if (scale <= 4) {
+			info.fingerFontSize++;
+		}
+		if (scale == 1) {
+			info.fingerFontSize++;
+		}
+		info.boxWidth = (this.stringCount-1)*info.cellWidth;
+		info.boxHeight = (this.fretCount)*info.cellHeight;
+		info.width = info.boxWidth + 3*info.cellWidth;
+		info.height = info.nameFontSize + info.nameFontPaddingBottom + info.dotWidth + info.nutSize + info.boxHeight + info.fingerFontSize + 2;
+		info.boxStartX = Math.round(((info.width-info.boxWidth)/2));
+		info.boxStartY = Math.round(info.nameFontSize + info.nameFontPaddingBottom + info.nutSize + info.dotWidth);	
+		return info;
 	},
 	
-	drawBars : function() {
-		with(this) {
-			if (fingerings.length>0) {
-				var bars = {}
-				for (var i = 0; i < positions.length; i++) {
-					var fret = positions[i]
-					if (fret > 0) {
-						if (bars[fret]&& bars[fret].finger == fingerings[i]) {
-							bars[fret].length = i - bars[fret].index
-						} else {
-							bars[fret] = { finger:fingerings[i], length:0, index:i}
-						}
+	draw : function(scale) {
+		var info = this.calculateDimensions(scale);
+		this.renderer.init(info);
+		this.drawFretGrid(info);
+		this.drawNut(info);
+		this.drawName(info);
+		this.drawMutedAndOpenStrings(info);
+		this.drawPositions(info);
+		this.drawFingerings(info);
+		this.drawBars(info);
+	},
+	
+	getDiagram : function(scale, renderer) {
+		renderer = renderer || Chord.renderPreference[0];
+		var index = $.inArray(renderer, Chord.renderPreference);
+		for (var i = index; i < Chord.renderPreference.length; i++) {
+			renderer = Chord.renderPreference[i];
+			if (Chord.canUse[renderer]) {
+				this.renderer = new Chord.renderers[renderer]();
+				this.draw(scale);
+				return this.renderer.diagram();
+			} 
+		}
+		throw 'Found no usable renderer';
+	},
+	
+	drawBars : function(info) {
+		var r = this.renderer;
+		if (this.fingerings.length>0) {
+			var bars = {};
+			for (var i = 0; i < this.positions.length; i++) {
+				var fret = this.positions[i];
+				if (fret > 0) {
+					if (bars[fret]&& bars[fret].finger == this.fingerings[i]) {
+						bars[fret].length = i - bars[fret].index;
+					} else {
+						bars[fret] = { finger:this.fingerings[i], length:0, index:i};
 					}
 				}
-				for (var fret in bars) {
-					if (bars[fret].length > 0) {
-						var xStart = bars[fret].index * cellWidth
-						var xEnd = xStart+bars[fret].length*cellWidth
-						var relativePos = fret - startFret+1
-						var y = relativePos*cellHeight-(cellHeight/2)
-						ctx.lineWidth = dotRadius
-						ctx.beginPath()
-						ctx.moveTo(xStart,y)
-						ctx.lineTo(xEnd,y)
-						ctx.stroke()
-					}
+			}
+			for (var fret in bars) {
+				if (bars[fret].length > 0) {
+					var xStart = info.boxStartX+bars[fret].index * info.cellWidth;
+					var xEnd = xStart+bars[fret].length*info.cellWidth;
+					var relativePos = fret - this.startFret+1;
+					var y = info.boxStartY+relativePos*info.cellHeight-(info.cellHeight/2);
+					r.line(xStart,y,xEnd,y, info.dotRadius, 'square');
 				}
+			}
 
-				//Explicit, calculate from that
-			} else {
-				//Try to guesstimate whether there is a bar or not				
-				var barFret = positions[positions.length-1];
-				if (barFret <= 0) {
+			//Explicit, calculate from that
+		} else {
+			//Try to guesstimate whether there is a bar or not				
+			var barFret = this.positions[this.positions.length-1];
+			if (barFret <= 0) {
+				return;
+			}
+			if (this.positions.join('') == '-1-10232') { //Special case for the D chord...
+				return;
+			}
+			var startIndex = -1;
+
+			for (var i = 0; i < this.positions.length-2;i++) {
+				var fret = this.positions[i];
+				if (fret > 0 && fret < barFret) {
+					return;
+				} else if (fret == barFret && startIndex == -1) {
+					startIndex = i;
+				} else if (startIndex != -1 && fret < barFret) {
 					return;
 				}
-				if (positions.join('') == '-1-10232') { //Special case for the D chord...
-					return
-				}
-				var startIndex = -1;
-
-				for (var i = 0; i < positions.length-2;i++) {
-					var fret = positions[i];
-					if (fret > 0 && fret < barFret) {
-						return
-					} else if (fret == barFret && startIndex == -1) {
-						startIndex = i
-					} else if (startIndex != -1 && fret < barFret) {
-						return
-					}
-				}
-				if (startIndex >= 0) {
-					var xStart = startIndex * cellWidth
-					var xEnd = (positions.length-1)*cellWidth
-					var relativePos = barFret - startFret+1
-					var y = relativePos*cellHeight-(cellHeight/2)
-					ctx.lineWidth = dotRadius
-					ctx.beginPath()
-					ctx.moveTo(xStart,y)
-					ctx.lineTo(xEnd,y)
-					ctx.stroke()
-				}
+			}
+			if (startIndex >= 0) {
+				var xStart = info.boxStartX+startIndex * info.cellWidth;
+				var xEnd = (this.positions.length-1)*info.cellWidth;
+				var relativePos = barFret - this.startFret+1;
+				var y = info.boxStartY+relativePos*info.cellHeight-(info.cellHeight/2);
+				r.line(xStart,y,xEnd,y, info.dotRadius, 'square');
 			}
 		}
 	},
 	
-	drawCross : function(x, y, radius) {
-		with(this) {
-			ctx.save()
-			ctx.lineCap = 'round'
-			ctx.lineWidth *= 1.5
-			var angle = Math.PI/4
-			for (var i = 0; i < 2; i++) {
-				var startAngle = angle + i*Math.PI/2
-				var endAngle = startAngle + Math.PI
+	drawCross : function(info, x, y, radius) {
+		var r = this.renderer;
+		var angle = Math.PI/4
+		var lineWidth = info.lineWidth;
+		if (info.scale > 2 ) {
+			lineWidth *= 1.2;
+		}
+		for (var i = 0; i < 2; i++) {
+			var startAngle = angle + i*Math.PI/2;
+			var endAngle = startAngle + Math.PI;
 
-				var startX = x + radius * Math.cos(startAngle)
-				var startY = y + radius * Math.sin(startAngle)
-				var endX = x + radius * Math.cos(endAngle)
-				var endY = y + radius * Math.sin(endAngle)
-				ctx.beginPath()
-				ctx.moveTo(startX,startY)
-				ctx.lineTo(endX,endY)
-				ctx.stroke()
-			}
-			ctx.restore()
+			var startX = x + radius * Math.cos(startAngle);
+			var startY = y + radius * Math.sin(startAngle);
+			var endX = x + radius * Math.cos(endAngle);
+			var endY = y + radius * Math.sin(endAngle);
+			
+			r.line(startX,startY,endX,endY,lineWidth,'round');
 		}
 	},
 	
-	drawFingerings : function() {
-		with(this) {
-			var fontSize = Math.ceil(cellHeight + 1 - Math.min(scale,1))
-			ctx.font = fontSize + 'px Arial'
-			ctx.textBaseline = 'top'
-			ctx.textAlign = 'center'
-			for (var i in fingerings) {
-				var finger = fingerings[i]
-				var x = i*cellWidth
-				var y = FRET_COUNT*cellHeight
-				if (finger) {
-					ctx.fillText(finger,x,y)
-				} 
-			}
+	drawFingerings : function(info) {
+		var r = this.renderer;
+		var fontSize = info.fingerFontSize;
+		for (var i in this.fingerings) {
+			var finger = this.fingerings[i]
+			var x = info.boxStartX+i*info.cellWidth;
+			var y = info.boxStartY+info.boxHeight;
+			if (finger) {
+				r.text(x,y,finger, info.font, fontSize, 'top', 'center');
+			} 
 		}
 	}
 }
+
+
+Chord.renderers = {}; 
+
+Chord.renderers.canvas = function() {}
+Chord.renderers.canvas.prototype = {
+
+	init : function(info) {
+		this.canvas = document.createElement('canvas');
+		var ctx = this.ctx = this.canvas.getContext('2d');
+		this.canvas.width = info.width;
+		this.canvas.height = info.height;
+		
+		if (info.lineWidth%2==1){
+			ctx.translate(0.5,0.5);
+		}
+		ctx.fillStyle = 'white';
+		ctx.fillRect(-1,-1,this.canvas.width+2,this.canvas.height+2);
+		ctx.fillStyle = 'black';
+
+		ctx.lineJoin = 'miter';
+		ctx.lineWidth = info.lineWidth;
+		ctx.lineCap = 'square';
+		ctx.strokeStyle = 'black';
+	},
+	
+	line : function(x1,y1,x2,y2,width,cap) {
+		var c = this.ctx;
+		c.save();
+		if (width) {
+			c.lineWidth = width;
+		}
+		c.lineCap = cap || 'square';
+		c.beginPath();
+		c.moveTo(x1,y1);
+		c.lineTo(x2,y2);
+		c.stroke();
+		c.restore();
+	},
+	
+	text : function(x,y,text,font,size,baseline,align) {
+		this.ctx.font = size + 'px ' + font;
+		this.ctx.textBaseline = baseline;
+		this.ctx.textAlign = align;
+		this.ctx.fillText(text,x,y)
+	},
+	
+	rect : function(x,y,width,height) {
+		var lw = this.ctx.lineWidth;
+		this.ctx.fillRect(x-lw/2.0,y-lw/2.0,width+lw,height+lw);
+	},
+	
+	circle : function(x,y,radius, fillCircle) {
+		var c = this.ctx;
+		c.beginPath();
+		radius = Math.floor(radius) ;
+		c.arc(x,y,radius,2*Math.PI,false)
+		if (fillCircle) {
+			c.fill();
+		} else {
+			c.stroke();
+		}
+	},
+	
+	diagram : function() {
+		var img = document.createElement('img');
+		img.src = this.canvas.toDataURL();
+		return img;
+	}
+};
+
+Chord.renderers.svg = function(){ }
+Chord.renderers.svg.prototype = {
+	
+	newElement : function(name) {
+		return document.createElementNS("http://www.w3.org/2000/svg", name);
+	},
+	
+	init : function(info) {
+		this.svg = this.newElement('svg');
+		this.svg.setAttribute('width', info.width);
+		this.svg.setAttribute('height', info.height);
+		this.svg.setAttribute('style', 'background-color:white;');
+		this.group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+		if (info.lineWidth%2==1) {
+			this.group.setAttribute('transform', 'translate(0.5,0.5)');
+		}
+		this.group.setAttribute('stroke-linejoin', 'miter');
+		this.svg.appendChild(this.group);
+	},
+	
+	line : function(x1,y1,x2,y2,width,cap) {
+		var line = this.newElement('line');
+		line.x1.baseVal.value = x1;
+		line.x2.baseVal.value = x2;
+		line.y1.baseVal.value = y1;
+		line.y2.baseVal.value = y2;
+		line.setAttribute('stroke', 'black');
+		line.setAttribute('stroke-width', width);
+		line.setAttribute('stroke-linecap', cap);
+		this.group.appendChild(line);
+	},
+	
+	text : function(x,y,text,font,size,baseline,align) {
+		var anchors = { left:'start', right:'end', center:'middle' };
+		var baselines = { middle:'middle', top:'text-before-edge', bottom:'text-after-edge' };
+		var textNode = this.newElement('text');
+		textNode.setAttribute('x', x);
+		textNode.setAttribute('y', y);
+		textNode.setAttribute('font-family', font);
+		textNode.setAttribute('font-size', size + 'px');
+		textNode.setAttribute('text-anchor', anchors[align]);
+		textNode.setAttribute('alignment-baseline', baselines[baseline]);
+		textNode.appendChild(document.createTextNode(text));
+		this.group.appendChild(textNode);
+	},
+	
+	rect : function(x,y,width,height) {
+		var rect = this.newElement('rect');
+		rect.x.baseVal.value = x-0.5;
+		rect.y.baseVal.value = y-0.5;
+		rect.width.baseVal.value = width+1;
+		rect.height.baseVal.value = height+1;
+		rect.setAttribute('fill', 'black');
+		this.group.appendChild(rect);
+	},
+	
+	circle : function(x,y,radius, fillCircle) {
+		var circle = this.newElement('circle');
+		circle.cx.baseVal.value = x;
+		circle.cy.baseVal.value = y;
+		circle.r.baseVal.value = radius;
+		if (fillCircle) {
+			circle.setAttribute('fill', 'black');
+		} else {
+			circle.setAttribute('fill', 'white');
+			circle.setAttribute('stroke', 'black');
+		}
+		this.group.appendChild(circle);
+	},
+	
+	diagram : function() {
+		return this.svg;
+	}
+};
+
+Chord.renderers.url = function(){ }
+Chord.renderers.url.prototype = {
+	
+	init : function(info) {
+		this.info = info;
+	},
+	
+	line : function(x1,y1,x2,y2,width,cap) {},
+	text : function(x,y,text,font,size,baseline,align) {},
+	rect : function(x,y,width,height,fillRect) {},
+	circle : function(x,y,radius, fillCircle) {},
+	
+	diagram : function() {
+		var img = document.createElement('img');
+		var url = Chord.serverSideRenderUrl
+					.replace('{name}', escape(this.info.name))
+					.replace('{positions}', this.info.positions)
+					.replace('{fingers}', this.info.fingers)
+					.replace('{size}', this.info.scale)
+					.replace('{format}', Chord.serverSideRenderFormat);
+		img.setAttribute('src', url);
+		return img;
+	}
+};
+
+
+Chord.renderers.vml = function(){ }
+Chord.renderers.vml.prototype = {
+	
+	newElement : function(name) {
+		var el = document.createElementNS("urn:schemas-microsoft-com:vml", name);
+		el.style.behavior = 'url(#default#VML)';
+		return el;
+	},
+	
+	init : function(info) {
+		this.rect = this.newElement('rect');
+		this.svg.setAttribute('width', info.width);
+		this.svg.setAttribute('height', info.height);
+		this.svg.setAttribute('style', 'background-color:white;');
+		this.group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+		if (info.lineWidth%2==1) {
+			this.group.setAttribute('transform', 'translate(0.5,0.5)');
+		}
+		this.lineWidth = info.lineWidth;
+		this.group.setAttribute('stroke-linejoin', 'miter');
+		this.svg.appendChild(this.group);
+	},
+	
+	line : function(x1,y1,x2,y2,width,cap) {
+		var line = this.newElement('line');
+		line.x1.baseVal.value = x1;
+		line.x2.baseVal.value = x2;
+		line.y1.baseVal.value = y1;
+		line.y2.baseVal.value = y2;
+		line.setAttribute('stroke', 'black');
+		line.setAttribute('stroke-width', width);
+		line.setAttribute('stroke-linecap', cap);
+		this.group.appendChild(line);
+	},
+	
+	text : function(x,y,text,font,size,baseline,align) {
+		var anchors = { left:'start', right:'end', center:'middle' };
+		var baselines = { middle:'middle', top:'text-before-edge', bottom:'text-after-edge' };
+		var textNode = this.newElement('text');
+		textNode.setAttribute('x', x);
+		textNode.setAttribute('y', y);
+		textNode.setAttribute('font-family', font);
+		textNode.setAttribute('font-size', size + 'px');
+		textNode.setAttribute('text-anchor', anchors[align]);
+		textNode.setAttribute('alignment-baseline', baselines[baseline]);
+		textNode.appendChild(document.createTextNode(text));
+		this.group.appendChild(textNode);
+	},
+	
+	rect : function(x,y,width,height,fillRect) {
+		var rect = this.newElement('rect');
+		rect.x.baseVal.value = x-lineWidth/2.0;
+		rect.y.baseVal.value = y-lineWidth/2.0;
+		rect.width.baseVal.value = width+lineWidth;
+		rect.height.baseVal.value = height+lineWidth;
+		rect.setAttribute('fill', 'black');
+		this.group.appendChild(rect);
+	},
+	
+	circle : function(x,y,radius, fillCircle) {
+		var circle = this.newElement('circle');
+		circle.cx.baseVal.value = x;
+		circle.cy.baseVal.value = y;
+		circle.r.baseVal.value = radius;
+		if (fillCircle) {
+			circle.setAttribute('fill', 'black');
+		} else {
+			circle.setAttribute('fill', 'white');
+			circle.setAttribute('stroke', 'black');
+		}
+		this.group.appendChild(circle);
+	},
+	
+	diagram : function() {
+		return this.svg;
+	}
+};
+
+Chord.autoRender = function() {
+	if (!Chord.renderOnLoad) {
+		return;
+	}
+	Chord.render(document.getElementsByTagName('span'));
+};
+
+if (document.addEventListener) {
+	document.addEventListener('DOMContentLoaded', Chord.autoRender, true);
+} else if (window.attachEvent) {
+	window.attachEvent('onload', Chord.autoRender);
+}
+
+Chord.render = function(elements) {
+	
+	for (var i = 0; i < elements.length; i++) {
+		var el = elements[i];
+		var chordDef = el.getAttribute('data-chord');
+		var chordName = el.firstChild.nodeValue;
+		if (chordDef && chordDef.match(Chord.regex)) {
+			var size = Chord.defaultSize;
+			if (RegExp.$3) {
+				size = parseInt(RegExp.$3);
+			}
+			var renderer = RegExp.$4 || Chord.defaultRenderer;
+			
+			el.replaceChild(new Chord(chordName, RegExp.$1, RegExp.$2).getDiagram(size, renderer), el.firstChild);
+		}
+	}
+}
+
+
+Chord.canUse = {
+	canvas : !!document.createElement('canvas').getContext,
+	svg : !!document.createElementNS && !!document.createElementNS('http://www.w3.org/2000/svg', "svg").createSVGRect, //Thank you Modernizr
+	vml : false,
+	url : true
+}
+
+

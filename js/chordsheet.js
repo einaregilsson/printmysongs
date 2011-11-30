@@ -104,7 +104,7 @@ function renderChords(lines) {
 		if (line.type == CHORDDEF) {
 			for (var j = 0; j < line.chords.length; j++) {
 				var chord = line.chords[j];
-				$('#chords').append(chord.getDiagram(options.chordSize));
+				$('#chords').append(chord.getDiagram(options.chordSize, options.renderer));
 			}
 		}
 	}
@@ -315,6 +315,10 @@ function showSheet() {
 
 $(document).ready(function(){
 
+	$.get('example.txt', function(data) {
+		$('#source').text(data);
+		render();
+	});
 	window._gaq = [['_setAccount', 'UA-5098292-9'],['_trackPageview']];
 
 	//Get external scripts
@@ -322,7 +326,19 @@ $(document).ready(function(){
 	$.getScript('http://platform.twitter.com/widgets.js');
 	$.getScript('http://www.google-analytics.com/ga.js');
 
-
+	for (var renderer in Chord.renderers) {
+		var selector = 'input[value="' + renderer + '"]';
+		if (!Chord.canUse[renderer]) {
+			$(selector).attr('disabled','disabled');
+		}
+	}
+	
+	$('input[name="renderer"]').click(function() {
+		options.renderer = $(this).val();
+		set('renderer', options.renderer);
+		render();
+	});
+	
 	if (!window.localStorage) {
 		$('#show-my-sheets').hide();
 	}
@@ -390,8 +406,12 @@ $(document).ready(function(){
 	}
 	
 	$.each( options, function(optName, value){
-		options[optName] = parseInt(get(optName, value));
-		//Compat for old values
+		value = get(optName, value);
+		if (window.ranges[optName]) {
+			options[optName] = parseInt(value);
+		} else {
+			options[optName] = value;
+		}
 		$('#'+optName+' h4 span').html(options[optName]);
 		$('#' + optName + ' .slider').slider({
 			min: ranges[optName][0],

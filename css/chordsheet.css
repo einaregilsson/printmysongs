@@ -54,10 +54,11 @@ canvas {margin:auto; display:block;margin-top:50px; background-color:white;}
 	white-space:pre;
 	font-family:'Lucida Console', monospace;
 }
-input[name="columns"] {
+input[name="columns"],input[name="renderer"] {
 	display:inline-block;
 	margin-left:20px;
 }
+
 #song h3 {
 	font-size:18px;
 	margin-bottom:10px;

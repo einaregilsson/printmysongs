@@ -333,12 +333,6 @@ $(document).ready(function(){
 		}
 	}
 	
-	$('input[name="renderer"]').click(function() {
-		options.renderer = $(this).val();
-		set('renderer', options.renderer);
-		render();
-	});
-	
 	if (!window.localStorage) {
 		$('#show-my-sheets').hide();
 	}

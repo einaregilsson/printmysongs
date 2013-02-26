@@ -1,0 +1,3 @@
+[submodule "chordlib"]
+	path = chordlib
+	url = https://github.com/einaregilsson/chord.js

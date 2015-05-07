@@ -16,7 +16,7 @@ var CHORDDEF  = ' CHORDDEF'
 
 
 function parse() {
-	var rx = Chord.regex;
+	var rx = Chord.searchRegex;
 	var source = $('#source').val();
 	var tempLines = source.split(/\r?\n/);
 	var lines = [];
@@ -33,7 +33,7 @@ function parse() {
 				line.chords = [];
 			}
 			chordLine = true;
-			var chord = new Chord(s[1], s[2], s[4]);
+			var chord = new Chord(s[1], s[2], s[3] || s[4]);
 			chords[s[1]] = 1;
 			line.chords.push(chord);
 		}
@@ -262,12 +262,7 @@ function isChordLine(chordNames, line) {
 		}
 	}
 	
-	console.log('-----');
-	console.log(line);
-	console.log(chordCount);
-	console.log(possibleChordCount);
-	if (chordCount >= 0.5*tokens.length) {
-		
+	if (chordCount >= 0.5*tokens.length) {		
 		return true;
 	}
 	
@@ -292,25 +287,26 @@ function set(key, value) {
 }
 
 function openDialog(id, options) {
-	options.draggable = true;
-	options.resizable = false;
-	$('.popup').dialog('close');
-	$(id).dialog(options);
+	$('.popup').hide();
+	$(id).show();
+	var height = $(id).height();
+	$(id).css('margin-top', -(height/2));
 }
 
-function showSource() {
+function showSource(e) {
 	var height = $('#song').height();
 	$('#source').css('height', height).show().focus();
 	$('#song').hide();
-	$('#menu button').removeClass('selected');
-	$('#show-source').addClass('selected');
+	$('#menu a').removeClass('selected');
+	$('a[href="#show-source"]').addClass('selected');
+	e.preventDefault();
 }
 
 function showSheet() {
 	$('#source').hide();
 	$('#song').show();
-	$('#menu button').removeClass('selected');
-	$('#show-sheet').addClass('selected');
+	$('#menu a').removeClass('selected');
+	$('a[href="#show-sheet"]').addClass('selected');
 }
 
 $(document).ready(function(){
@@ -322,17 +318,8 @@ $(document).ready(function(){
 	window._gaq = [['_setAccount', 'UA-5098292-9'],['_trackPageview']];
 
 	//Get external scripts
-	$.getScript('https://apis.google.com/js/plusone.js');
-	$.getScript('http://platform.twitter.com/widgets.js');
 	$.getScript('http://www.google-analytics.com/ga.js');
 
-	for (var renderer in Chord.renderers) {
-		var selector = 'input[value="' + renderer + '"]';
-		if (!Chord.canUse[renderer]) {
-			$(selector).attr('disabled','disabled');
-		}
-	}
-	
 	if (!window.localStorage) {
 		$('#show-my-sheets').hide();
 	}
@@ -346,8 +333,8 @@ $(document).ready(function(){
 		})
 	}
 	
-	$('#show-source').click(showSource);
-	$('#show-sheet').click(showSheet);
+	$('a[href="#show-source"]').click(showSource);
+	$('a[href="#show-sheet"]').click(showSheet);
 	
 	$(document).keydown(function(e) {
 		if (e.which == 77 && e.ctrlKey) {
@@ -367,7 +354,8 @@ $(document).ready(function(){
 		openDialog('#about', {title:'About Pimp My Chord Sheet', width:700});
 	})
 	
-	$('#print-sheet').click(function() {
+	$('a[href="#print-sheet"]').click(function(e) {
+		e.preventDefault();
 		print();
 	})
 	
@@ -406,22 +394,6 @@ $(document).ready(function(){
 		} else {
 			options[optName] = value;
 		}
-		$('#'+optName+' h4 span').html(options[optName]);
-		$('#' + optName + ' .slider').slider({
-			min: ranges[optName][0],
-			max: ranges[optName][1],
-			value: options[optName],
-			slide: function(e,ui){
-				options[optName] = ui.value;
-				set(optName, ui.value);
-				if (optName == 'chordSize') {
-					$('#'+optName + ' h4 span').html(ui.value);
-					renderChords(parse());
-				} else if (optName == 'tablatureSize') {
-					$('.tabline').css('fontSize', ui.value + 'px');
-				}
-			}
-		})
 	})
 	render();
 });

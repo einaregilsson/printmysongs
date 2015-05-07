@@ -1,7 +1,8 @@
 
 * {padding:0px;margin:0px}
+
 body {
-	background-color:#eaeaff;
+	background-image: linear-gradient(to bottom,#afcffe,#fff);
 	font-family: Helvetica, Arial, 'sans-serif';
 }
 
@@ -10,8 +11,7 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 .selected {
-	background-color: #ccc;
-	border-radius:5px;
+	background: #444;
 }
 
 .columns {
@@ -24,17 +24,22 @@ h1,h2,h3,h4,h5,h6 {
 }
 
 button {
+	background: transparent;
 	border:none;
 	cursor:pointer;
-	padding:3px;
-	background:transparent;
+	padding:5px;
 	font-weight:bold;
 	font-size:14px;
-	color:#444;
-	text-shadow:1px 1px 1px white;
+	color:white;
+	border-radius:4px;
 }
 
-canvas {margin:auto; display:block;margin-top:50px; background-color:white;}
+canvas {
+	margin:auto; 
+	display:block;
+	margin-top:50px; 
+	background-color:white;
+}
 
 .chordline {
 	font-weight:bold;
@@ -73,6 +78,16 @@ input[name="columns"],input[name="renderer"] {
 	display:none;
 	font-size:14px;
 	text-shadow:0px 1px 1px white;
+	position:fixed;
+	left:50%;
+	top:50%;
+	background: #fafafa;
+	box-shadow: #333 0px 0px 3px;
+	border-radius:4px;
+	border:solid 1px grey;
+	padding:10px;
+	width:650px;
+	margin-left:-325px;
 }
 
 .popup h4 {
@@ -110,20 +125,47 @@ input[name="columns"],input[name="renderer"] {
 }
 
 
-#menu, #sheet { width: 21cm; margin:auto; }
+#sheet, #inner-menu { width: 794px; margin:auto; }
+
 #menu {
-	margin:10px auto;
 	text-align:center;
+	position:fixed;
+	top:0;
+	left:0;
+	width:100%;
+	background:#222;
+	background: linear-gradient(#444, #111);
+	height:30px;
+}
+
+#inner-menu {
 	position:relative;
+	height:30px;
+}
+
+#inner-menu a {
+	color:white;
+	text-decoration: none;
+	font-weight: bold;
+	display:inline-block;
+	padding:3px 5px;
+	margin:0px;
+	height:24px;
+	line-height: 24px;
+}
+
+#inner-menu a:hover {
+	color:#ddd;
 }
 
 #nav-buttons {
 	position:absolute;
 	left:0px;
 	top:0px;
+	height:100%;
 }
 
-#info-buttons {
+#action-buttons {
 	position:absolute;
 	right:0px;
 	top:0px;
@@ -135,6 +177,9 @@ input[name="columns"],input[name="renderer"] {
 	margin:auto;
 	padding:10px;
 	display:none;
+	outline:none;
+	font-family: 'Lucida Console', 'Courier New', monospace;
+	font-size:14px;
 }
 
 #my-sheets {
@@ -142,13 +187,14 @@ input[name="columns"],input[name="renderer"] {
 	height:500px;
 }
 #sheet {
-	min-height:29cm; 
+	min-height:1096px; 
 	padding:20px;
 	border-radius:5px;
 	background-color:white;
 	border:solid 1px #333;
-	box-shadow:0px 0px 6px grey;
+	box-shadow:0px 0px 2px #333;
 	margin-bottom:40px;
+	margin-top:60px;
 }
 
 #sheet h3 {
@@ -169,13 +215,6 @@ input[name="columns"],input[name="renderer"] {
 	page-break-inside:avoid;
 }
 
-#disclaimer {
-	color:red;
-}
-#about {
-	width:650px;
-}
-
 #about a {
 	text-shadow:none;
 	font-weight:bold;
@@ -184,8 +223,8 @@ input[name="columns"],input[name="renderer"] {
 
 @media print
 {
-	#menu, #source, #disclaimer {display:none;}
-	#sheet { border-style:none; box-shadow:none; border-radius:0px; 
+	#menu, #source {display:none;}
+	#sheet { border-style:none; box-shadow:none; border-radius:0px; margin-top:0px;}
 }
 
 

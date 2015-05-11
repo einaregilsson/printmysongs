@@ -1,113 +1,131 @@
-<!DOCTYPE html>
-<html>
-	<head>
-		<title>Pimp my Chord Sheet</title>
-		
-		<meta charset="UTF-8">
-		<meta name="google-site-verification" content="lvIXtiAZ3pzBmpGTRwB4-aOagwwyEN9QcK0Ba17vW3w" />		
-		
-		<link type="text/css" href="css/chordsheet.css" rel="stylesheet" />	
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7" lang=""> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8" lang=""> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9" lang=""> <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang=""> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Pimp my chordsheet</title>
+        <meta name="description" content="Instantly create beautiful looking chordsheets, complete with great looking chord diagrams.">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
-		<script src="js/jquery-1.5.1.min.js"></script>
-		<script src="js/chord.js"></script>
-		<script src="js/chordsheet.js"></script>
-		<script src="js/jspdf.min.js"></script>
-	</head>
-	<body>
-		<div id="menu">
-			<div id="inner-menu">
-				<div id="nav-buttons">
-					<a href="#show-sheet" class="selected">Sheet</a>
-					<a href="#show-source" >Source</a>
-					<!--<a href="#show-split-screen">Split Screen</a>-->
-				</div>
-				<div id="action-buttons">
-					<a href="#show-settings">Settings</a>
-					<a href="#print-sheet">Print</a>
-					<a href="#show-about">About</a>
-					<!-- Wait with this for now
-					<button id="show-save">Save</button>
-					<button id="show-open">Open</button>
-					-->
-				</div>
-			</div>
-		</div>
-		<div id="settings">
-		</div>
-		<div id="sheet">
-			<div id="paper-page">
-			<h1 id="song-title">Pimp my Chordsheet</h1>
-			<h2 id="song-artist">by Einar Egilsson</h2>
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+        <style>
+            body {
+                padding-top: 50px;
+                padding-bottom: 20px;
+            }
+        </style>
+        <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="css/chordsheet.css">
 
-			<div id="chords">
-			</div>
+        <script src="js/vendor/modernizr-2.8.3-respond-1.4.2.min.js"></script>
+    </head>
+    <body>
+        <!--[if lt IE 8]>
+            <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+        <![endif]-->
+    <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          
+          <!--
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+        -->
+          <a class="navbar-brand" href="#">Pimp my chordsheet</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <!--<ul class="nav navbar-nav">
+            <li class="active"><a href="/">Edit song</a></li>
+            <li><a href="#syntax">Learn about formatting</a></li>
+            <li><a href="#about">About this site</a></li>
+          </ul>
+        -->
+          <!--
+          <form class="navbar-form navbar-right" role="form">
+            <div class="form-group">
+              <input type="text" placeholder="Email" class="form-control">
+            </div>
+            <div class="form-group">
+              <input type="password" placeholder="Password" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-success">Sign in</button>
+          </form>
+        -->
+        </div><!--/.navbar-collapse -->
+      </div>
+    </nav>
 
-			<div id="song">
-				<div class="col first-col"></div>
-				<div class="col second-col"></div>
-				<div style="clear:both"></div>
-			</div>
-			
-			<textarea id="source">
-			</textarea>
-			</div>
-		</div>
-		
-		<!-- ABOUT WINDOW -->
-		<div id="about" class="popup">
-			<h3>About this site</h3>
-			<h4>What is this site  for?</h4>
-			<p>
-				This site was made because I like to print out songs that I get on the internet,
-				and I was sick of printing out ugly text files with monospace fonts. I 
-				figured I could probably come up with something better, and this is the result.
-			</p>
-			<h4>How do I use it?</h4>
-			<p>
-				Press 'Show: Source' up in the menu. That will give you a large textbox on 
-				the page. Paste your chord sheet into that. The site should be able to figure
-				the formatting out mostly by itself, though you might have to help it a bit.
-				The source for the initial song on the page will show you what's possible.
-			</p>
-			<h4>Help me promote it</h4>
-			<p>
-				If you find the site useful, please help me out by tweeting about it, giving
-				it a Facebook like, or posting it to any other site where you think someone
-				might find it useful. I appreciate it. Oh, and you should probably  
-				<a href="http://twitter.com/einaregilsson">follow me on Twitter</a>.
-			</p>
-			<div id="social-media">
-				<!-- Twitter -->
-				<!-- Facebook -->
-			</div>
-		</div>
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <div class="container">
+        <h1>Pimp my chordsheet!</h1>
+        <p>Simply edit the song in the left window, and a beautiful, print ready PDF version will instantly be shown on the right, complete with great looking chord diagrams.</p>
+      </div>
+    </div>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-6" id="source-col">
+          <textarea id="source-sheet">
+          </textarea>
+        </div>
+        <div class="col-md-6" id="render-col">
+          <iframe id="rendered-sheet"></iframe>
+        </div>
 
-		<!-- LAYOUT WINDOW -->
-		<div id="layout" class="popup">
-			<h3>Layout Options</h3>
-			<div id="chordSize">
-				<h4>Chord Size: <span>1.0</span></h4>
-				<div class="slider"></div>
-			</div>
-			<div id="tablatureSize">
-				<h4>Tablature Size: <span>12</span></h4>
-				<div class="slider"></div>
-			</div>
-			<div>
-				<h4>Text Columns</h4>
-				<input type="radio" name="columns" value="1"> 1 Column
-				<input type="radio" name="columns" value="2" checked> 2 Columns
-			</div>
-		</div>
+      </div>
+    </div>
+    <div class="container">
+      <!-- Example row of columns -->
+      <div class="row">
+        <div class="col-md-4">
+          <h2>About</h2>
+          <p>I created this site because I was sick of printing out ugly looking ASCII songs from tablature sites. I wanted real chord diagrams, non monospace fonts, and a column layout to easily get a song with all verses on one page. This site is my attempt to make it as easy as possible to get a beautiful printed version from any of the millions of songs you can find out there on the internet.</p>
+        </div>
+        <div class="col-md-4">
+          <h2>Formatting</h2>
+          <p></p>
+        </div>
+        <div class="col-md-4">
+          <h2>Social</h2>
+          <p> </p>
+       </div>
+      </div>
 
-		<!-- OPEN FILE DIALOG -->
-		<div id="my-sheets" class="popup">
-		</div>
-		
-		<!-- SAVE FILE DIALOG -->
-		<div id="save-sheet" class="popup">
-			<label>Name</label>
-			<input type="text" />
-		</div>
-	</body>
+      <hr>
+
+      <footer>
+        <p>&copy; Einar Egilsson 2015</p>
+      </footer>
+    </div> <!-- /container -->        <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+        <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.11.2.min.js"><\/script>')</script>
+
+        <script src="js/vendor/bootstrap.min.js"></script>
+
+        <!--app scripts-->
+        <script src="js/blob-stream.js"></script>
+        <script src="js/pdfkit.js"></script>
+        <script src="js/chord.js"></script>
+        <script src="js/songparser.js"></script>
+        <script src="js/pdf-render.js"></script>
+        <script src="js/chordsheet.js"></script>
+
+
+        <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. -->
+        <script>
+            (function(b,o,i,l,e,r){b.GoogleAnalyticsObject=l;b[l]||(b[l]=
+            function(){(b[l].q=b[l].q||[]).push(arguments)});b[l].l=+new Date;
+            e=o.createElement(i);r=o.getElementsByTagName(i)[0];
+            e.src='//www.google-analytics.com/analytics.js';
+            r.parentNode.insertBefore(e,r)}(window,document,'script','ga'));
+            ga('create','UA-XXXXX-X','auto');ga('send','pageview');
+        </script>
+    </body>
 </html>

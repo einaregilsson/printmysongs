@@ -1,4 +1,17 @@
 
+var lineType = {
+	chordDef : 'chordDef',
+	title : 'title',
+	artist : 'artist',
+	heading : 'heading',
+	tabLine : 'tabLine',
+	chordLine : 'chordLine',
+	seperator : 'seperator',
+	text : 'text',
+	emptyLine : 'emptyLine',
+	skip : 'skip'
+};
+
 var songParser = (function() {
 
 	function isTabLine(line) {
@@ -53,7 +66,7 @@ var songParser = (function() {
 		}
 		return false;
 	}
-	
+
 	function parseSong(text) {
 
 		var tempLines = text.split(/\r?\n/);
@@ -76,45 +89,45 @@ var songParser = (function() {
 				line.chords.push(chord);
 			}
 			if (chordLine) {
-				line.type = CHORDDEF;
+				line.type = lineType.chordDef;
 				startedChordLines = true;
 			} else if (!startedChordLines && !foundTitle && !line.text.match(/^\s*$/)) {
-				line.type = TITLE;
+				line.type = lineType.title;
 				line.text = line.text.replace(/^\s*|\s*$/g, '').replace(/^(TITLE|SONG)\s*:\s*/i, '');
 				foundTitle = true;
 			} else if (!startedChordLines && !foundArtist && !line.text.match(/^\s*$/)) {
-				line.type = ARTIST;
+				line.type = lineType.artist;
 				line.text = line.text.replace(/^\s*|\s*$/g, '').replace(/^(ARTIST|BAND)\s*:\s*/i, '');
 				foundTitle = true
 			} else if (line.text.match(/^\s*((?:INTRO|OUTRO|VERSE|CHORUS|BRIDGE|PRE-?CHORUS)(?:\s*\d*):?)\s*(?:\[(.*?)\])?$/gi)) {
 				line.text = RegExp.$1;
 				line.note = RegExp.$2;
-				line.type = HEADING;
+				line.type = lineType.heading;
 			} else if (isTabLine(line) && isTabLine(lines[i+1]) && isTabLine(lines[i+2]) && isTabLine(lines[i+3]) ) {
 				//At least a bass tab, 4 lines
 				for (var j = 0; j < 4; j++) {
-					lines[i+j].type = TABLINE;
+					lines[i+j].type = lineType.tabLine;
 				}
 				
 				//Is it a guitar tab...
 				if (isTabLine(lines[i+4]) && isTabLine(lines[i+5])) {
-					lines[i+4].type = TABLINE;
-					lines[i+5].type = TABLINE;
+					lines[i+4].type = lineType.tabLine;
+					lines[i+5].type = lineType.tabLine;
 					i += 2;
 				}
 				i += 3;
 			} else if (line.text.match(/^\s*-+\s*$/gi)) {
-				line.type = SEPERATOR;
+				line.type = lineType.seperator;
 			} else if (isChordLine(chords, line.text)) {
-				line.type = CHORDLINE;
+				line.type = lineType.chordLine;
 			} else if (!line.text.replace(/^\s*|\s*$/g, '')) {
-				if (lines[i-1] && lines[i-1].type == EMPTYLINE) {
-					line.type = EMPTYLINE //SKIP;
+				if (lines[i-1] && lines[i-1].type == lineType.emptyLine) {
+					line.type = lineType.emptyLine //SKIP;
 				} else {
-					line.type = EMPTYLINE;
+					line.type = lineType.emptyLine;
 				}
 			} else {
-				line.type = TEXT;
+				line.type = lineType.text;
 			}
 		}
 		return lines;

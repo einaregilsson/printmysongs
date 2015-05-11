@@ -84,17 +84,7 @@ function parse() {
 function render() {
 	var lines = parse();
 	renderChords(lines);
-	renderColumns();
 	renderSheet(lines);
-}
-
-function renderColumns() {
-	var colCount = parseInt($('input[@name=columns]:checked').val());
-	if (colCount == 1) {
-		$('#song').removeClass('columns');
-	} else { 
-		$('#song').addClass('columns');
-	}
 }
 
 function renderChords(lines) {
@@ -108,30 +98,34 @@ function renderChords(lines) {
 			}
 		}
 	}
+
+	//Fix the size of the song, to allow proper overflowing
+	$('#song').css('height', ($('#paper-page').height() - $('#chords').height()) + 'px');
 }
 
 function renderSheet(lines) {
 	
-	$('#song').html('');
+	var songDiv = '#song .first-col';
+	$(songDiv).html('');
 	var currentDiv;
 	for (var i = 0; i < lines.length; i++) {
 		var line = lines[i];
 		console.log(line.type + ' : ' + line.text);
 		var endCurrentDiv = true;
 		if (line.type == HEADING || line.type == TEXT || line.type == CHORDLINE) {
-			currentDiv = currentDiv || $('<div />').addClass('song-part').appendTo('#song');
+			currentDiv = currentDiv || $('<div />').addClass('song-part').appendTo(songDiv);
 			endCurrentDiv = false;
 		}
 		
 		if (line.type == CHORDDEF) {
 			continue;
-		} else if (line.type == EMPTYLINE && $('#song').html() != '') {
+		} else if (line.type == EMPTYLINE && $(songDiv).html() != '') {
 		
 			if (lines[i-1] && lines[i-1].type == HEADING) {
 				endCurrentDiv = false;
 				currentDiv.append($('<br>'));
 			} else {
-				$('#song').append($('<br>'));
+				$(songDiv).append($('<br>'));
 			}
 		} else if (line.type == TITLE) {
 			$('#sheet h1').html(line.text);
@@ -161,14 +155,21 @@ function renderSheet(lines) {
 				tabText.push(lines[i].text);
 				i++;
 			}
-			$('<div />').addClass('tabline').css('fontSize', options.tablatureSize + 'px').html(tabText.join('\n')).appendTo('#song');
+			$('<div />').addClass('tabline').css('fontSize', options.tablatureSize + 'px').html(tabText.join('\n')).appendTo(songDiv);
 		} else if (line.type == SEPERATOR) {
 			if (i>0 && lines[i-1].type != HEADING){
-				$('<span />').addClass('songline').html(line.text).appendTo('#song');
-				$('#song').append($('<br>'));
+				$('<span />').addClass('songline').html(line.text).appendTo(songDiv);
+				$(songDiv).append($('<br>'));
 			} else {
 				endCurrentDiv = false;
 			}
+		}
+
+		console.log('SONGDIV IS ' + $(songDiv).height() + ' , song is ' + $('#song').height());
+		if ($(songDiv).height() > $('#song').height()) {
+			currentDiv.remove();
+			songDiv = '#song .second-col';
+			currentDiv.appendTo(songDiv);
 		}
 		
 		if (endCurrentDiv) {
@@ -324,7 +325,6 @@ $(document).ready(function(){
 		$('#show-my-sheets').hide();
 	}
 	$('#source').bind('input',render);
-	$('input[name="columns"]').click(renderColumns);
 
 	//Enable offline...
 	if (window.applicationCache) {
@@ -357,7 +357,24 @@ $(document).ready(function(){
 	$('a[href="#print-sheet"]').click(function(e) {
 		e.preventDefault();
 		print();
-	})
+	});
+
+	$('a[href="#show-settings"]').click(function(e) {
+		e.preventDefault();
+		var doc = new jsPDF();
+		doc.setFontSize(12);
+		doc.addFont('Lucida-Console', 'Lucida Console', 'regular');
+		doc.setFont('Lucida Console');
+		var lines = $('.songline');
+		var margin = 5;
+		var i = 0;
+		lines.each(function() {
+			i+=12;
+			doc.text(margin, i, $(this).text());
+		})
+		doc.save('hi.pdf');
+	});
+
 	
 	$('#show-save').click(function() {
 		openDialog('#save-sheet', {

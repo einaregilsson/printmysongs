@@ -1,5 +1,13 @@
 
-* {padding:0px;margin:0px}
+html {
+	box-sizing:border-box;
+}
+
+* {
+	padding:0;
+	margin:0;
+	box-sizing:inherit;
+}
 
 body {
 	background-image: linear-gradient(to bottom,#afcffe,#fff);
@@ -12,15 +20,6 @@ h1,h2,h3,h4,h5,h6 {
 
 .selected {
 	background: #444;
-}
-
-.columns {
-	column-count:2;
-	-webkit-column-count:2;
-	-moz-column-count:2;
-	column-gap:30px;
-	-webkit-column-gap:30px;
-	-moz-column-gap:30px;
 }
 
 button {
@@ -54,11 +53,26 @@ canvas {
 }
 
 #song {
-	font-size:14px;
-	padding:10px 30px;
+	font-size:12px;
+	padding:0px;
 	white-space:pre;
 	font-family:'Lucida Console', monospace;
+	border:solid 1px green;
+	position: relative;
 }
+
+.col {
+	width:50%;
+	margin:0;
+	position:absolute;
+	border:solid 1px red;
+	top:0px;
+}
+
+.second-col {
+	left:50%;
+}
+
 input[name="columns"],input[name="renderer"] {
 	display:inline-block;
 	margin-left:20px;
@@ -125,7 +139,8 @@ input[name="columns"],input[name="renderer"] {
 }
 
 
-#sheet, #inner-menu { width: 794px; margin:auto; }
+#inner-menu { width: 830px; margin:auto; }
+
 
 #menu {
 	text-align:center;
@@ -186,15 +201,28 @@ input[name="columns"],input[name="renderer"] {
 	width:500px;
 	height:500px;
 }
+
 #sheet {
-	min-height:1096px; 
-	padding:20px;
+	width:840px;
+	height:1188px;
 	border-radius:5px;
 	background-color:white;
 	border:solid 1px #333;
 	box-shadow:0px 0px 2px #333;
+	margin:auto;
 	margin-bottom:40px;
 	margin-top:60px;
+	padding:0;
+}
+	
+
+#paper-page {
+	box-sizing:border-box;
+	border:solid 1px purple;
+	margin:auto;
+	height:93%;
+	width:90%;
+	margin-top:5%;
 }
 
 #sheet h3 {
@@ -202,9 +230,10 @@ input[name="columns"],input[name="renderer"] {
 	font-size:16px;
 }
 
-#sheet #chords {
-	margin:20px;
+#chords {
 	text-align:center;
+	padding-bottom:15px;
+	padding-top:15px;
 }
 
 .song-part {
@@ -224,7 +253,7 @@ input[name="columns"],input[name="renderer"] {
 @media print
 {
 	#menu, #source {display:none;}
-	#sheet { border-style:none; box-shadow:none; border-radius:0px; margin-top:0px;}
+	#sheet, #paper-page { width:200mm; height:287mm; margin-top:0px;}
 }
 
 

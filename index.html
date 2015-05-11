@@ -11,6 +11,7 @@
 		<script src="js/jquery-1.5.1.min.js"></script>
 		<script src="js/chord.js"></script>
 		<script src="js/chordsheet.js"></script>
+		<script src="js/jspdf.min.js"></script>
 	</head>
 	<body>
 		<div id="menu">
@@ -34,18 +35,22 @@
 		<div id="settings">
 		</div>
 		<div id="sheet">
+			<div id="paper-page">
 			<h1 id="song-title">Pimp my Chordsheet</h1>
 			<h2 id="song-artist">by Einar Egilsson</h2>
 
 			<div id="chords">
 			</div>
 
-			<div id="song" class="columns">
-				Pimp My Chord Sheet
+			<div id="song">
+				<div class="col first-col"></div>
+				<div class="col second-col"></div>
+				<div style="clear:both"></div>
 			</div>
 			
 			<textarea id="source">
 			</textarea>
+			</div>
 		</div>
 		
 		<!-- ABOUT WINDOW -->

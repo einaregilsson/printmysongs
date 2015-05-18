@@ -69,6 +69,13 @@ var songParser = (function() {
 
 	function parseSong(text) {
 
+		var undef;
+		var song = {
+			title:undef,
+			artist:undef,
+			chords:[]
+		};
+
 		var tempLines = text.split(/\r?\n/);
 		var lines = [];
 		for (var i in tempLines) {
@@ -130,6 +137,16 @@ var songParser = (function() {
 				line.type = lineType.text;
 			}
 		}
+
+
+		var chordLines = [];
+
+
+		for (var i=0; i< lines.length; i++) {
+			//if (lines[i])
+		}
+
+
 		return lines;
 	}
 

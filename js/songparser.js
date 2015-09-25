@@ -6,6 +6,7 @@ var lineType = {
 	heading : 'heading',
 	tabLine : 'tabLine',
 	chordLine : 'chordLine',
+	chordAndTextLine : 'chordAndTextLine',
 	seperator : 'seperator',
 	text : 'text',
 	emptyLine : 'emptyLine',
@@ -65,6 +66,33 @@ var songParser = (function() {
 			return true;
 		}
 		return false;
+	}
+
+	function combineChordAndTextLine(chordLine, textLine) {
+
+		//Lets make the lines the same length, to make things easier...
+		while (chordLine.text.length > textLine.text.length) {
+			textLine.text += ' ';
+		}
+		while (textLine.text.length > chordLine.text.length) {
+			chordLine.text += ' ';
+		}
+		var chordParts = chordLine.text.match(/[^ ]+|\s+/g);
+
+
+		var parts = [];
+		var index = 0;
+		for (var i=0; i < chordParts.length; i++) {
+			var length = chordParts[i].length;
+			var text = textLine.text.substr(index, length);
+			index += length;
+			parts.push({c:chordParts[i], t:text, length:length, isChord:chordParts[i].charAt(0) != ' '});
+		}
+
+		return {
+			parts : parts,
+			type : lineType.chordAndTextLine
+		};
 	}
 
 	function parseSong(text) {
@@ -138,16 +166,24 @@ var songParser = (function() {
 			}
 		}
 
-
-		var chordLines = [];
-
-
+		//Second pass, combine chord and text lines that are together...
+		var resultLines = [];
 		for (var i=0; i< lines.length; i++) {
-			//if (lines[i])
+			var l = lines[i];
+			if (l.type == lineType.chordLine) {
+				var nextLine = lines[i+1];
+				if (nextLine && nextLine.type == lineType.text) {
+					resultLines.push(combineChordAndTextLine(l, nextLine));
+					i++; //Skip the next text line
+				} else {
+					resultLines.push(l);
+				}
+			} else {
+				resultLines.push(l);
+			}
 		}
 
-
-		return lines;
+		return resultLines;
 	}
 
 	return {

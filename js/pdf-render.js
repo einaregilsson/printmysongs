@@ -1,38 +1,41 @@
 
 var pdfRenderer = (function() {
 
+	var fontSize = 10,
+		titleSize = 24,
+		artistSize = 16,
+		headingSize = 12,
+		tabSize = 9; 
+
+	var regularFont = 'Helvetica';
+	var boldFont = 'Helvetica-Bold';
+	var tabFont = 'Courier';
+
 	function render(lines, iframeId) {
 
 		var doc = new PDFDocument();
 		var stream = doc.pipe(blobStream());
 
-		var fontSize = 10,
-			titleSize = 24,
-			artistSize = 16,
-			headingSize = 12,
-			tabSize = 9; 
-
-		var regularFont = 'Helvetica';
-		var boldFont = 'Helvetica-Bold';
-		var tabFont = 'Courier';
 
 		Chord.renderer = Chord.renderers.pdf;
 		Chord.renderer.doc = doc;
 
 		var renderedChords = false;
 
+		var songParts = createSongParts(lines);
+
 		function writeLine(font, size, text, options) {
 			doc.font(font).fontSize(size).text(text, options);
 		}
-
-		processTextAndChordLines(lines);
 
 		for (var i = 0; i < lines.length; i++) {
 			var l = lines[i];
 			if (l.type == lineType.text) {
 				writeLine(regularFont, fontSize, l.text);
 			} else if (l.type == lineType.chordLine) {
-				writeLine(boldFont, fontSize, l.text);
+				writeLine(boldFont, fontSize, l.text.replace(/ /g, '   ')); //Triple blank spaces in all-chord lines
+			} else if (l.type == lineType.chordAndTextLine) {
+				writeChordAndTextLines(doc, l);
 			} else if (l.type == lineType.tabLine) {
 				formatTabLine(l, true, false);
 				writeLine(tabFont, tabSize, l.text);
@@ -56,7 +59,6 @@ var pdfRenderer = (function() {
 			} else if (l.type == lineType.seperator) {
 				//Do nothing
 			}
-
 		}
 		doc.save()
 		   
@@ -66,36 +68,61 @@ var pdfRenderer = (function() {
 		});
 	}
 
-	function processTextAndChordLines(lines) {
-		var pairs = [];
+	function writeChordAndTextLines(doc, line) {
+		doc.font(regularFont).fontSize(fontSize);
+		var wholeText = '';
+
+		console.log('START X IS ' + doc.x);
+		var p0 = line.parts[0];
+		function chordWidth(c) {
+			doc.font(boldFont);
+			return doc.widthOfString(c);
+		}
+		function textWidth(t) {
+			doc.font(regularFont);
+			return doc.widthOfString(t);
+		}
+
+		//Chord starts the line, offset the text!
+		if (p0.t.match(/^\s+$/) && p0.isChord) {
+			while (textWidth(p0.t) < chordWidth(p0.c)) {
+				p0.t = ' ' + p0.t;
+			}
+		}
+
+		doc.font(regularFont);
+	
+		var x = doc.x;
+		for (var i=0; i < line.parts.length; i++) {
+			var p = line.parts[i];
+			if (p.isChord) {
+				p.cpos = doc.widthOfString(wholeText);
+				console.log('Set ' + p.c + ' at ' + p.cpos + ', which is width of ' + wholeText);
+			}
+			wholeText += p.t;
+		}
+
+		doc.font(boldFont).fontSize(fontSize);
+		for (var i=0; i < line.parts.length; i++) {
+			var p = line.parts[i];
+			if (p.isChord) {
+				//console.log('Setting chord ' + p.c + ' at ' + p.cpos);
+				doc._fragment(p.c, p.cpos, doc.y, {});
+			}
+		}
+
+		doc.moveDown();
+		doc.font(regularFont);
+		doc._fragment(wholeText, doc.x, doc.y, {});
+
+		doc.moveDown();
+	}
+	function createSongParts(lines) {
+		var parts = [];
+		var currentPart = null; 
 		for (var i=0; i < lines.length; i++) {
-			if (lines[i].type == lineType.chordLine && lines[i+1] && lines[i+1].type == lineType.text) {
-				pairs.push({chords:lines[i], text:lines[i+1], parts : []});
-			}
+
 		}
-
-		for (var i=0; i < pairs.length; i++) {
-			var p = pairs[i];
-			var text = p.text.text;
-			var chords = p.chords.text;
-
-			while (chords.length < text.length) {
-				chords += ' ';
-			}
-
-			var chordParts = chords.match(/([\w]+ +)/g);
-			var tpos = 0;
-
-			for (var j=0; j < chordParts.length; j++) {
-				var cp = chordParts[j];
-				var tp = text.substr(tpos, cp.length);
-				tpos += cp.length;
-				p.parts.push({c:cp, t:tp});
-				console.log(cp + '----' + tp);
-			}
-		}
-
-
 	}
 
 	function renderChords(doc, lines) {
@@ -218,7 +245,6 @@ var pdfRenderer = (function() {
 		line.text = line.text.replace(/\|\|\s*$/, subst.doubleEnd).replace(/\|\s*$/, subst.singleEnd);
 		line.text = line.text.replace(/\|\|/, subst.doubleMiddle).replace(/\|/, subst.singleMiddle);
 		line.text = line.text.replace(/-/g, subst.line);
-		console.log(line.text);
 	}
 
 	Chord.renderers.pdf = {

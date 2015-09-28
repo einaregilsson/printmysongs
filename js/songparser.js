@@ -184,7 +184,6 @@ var songParser = (function() {
 		//Third pass, move chords into .chords array in column order...
 		for (var i = 0; i < combinedLines.length; i++) {
 			var l = combinedLines[i];
-			console.log(JSON.stringify(l))
 			if (l.chords && l.chords.length > 0) {
 				for (var j=0; j < l.chords.length; j++) {
 					var c = l.chords[j];
@@ -199,6 +198,12 @@ var songParser = (function() {
 		song.chords.sort(function(a,b) {
 			return a.sortRank-b.sortRank;
 		});
+
+		//Fourth pass, clean out empty lines at start...
+		while (song.lines[0] && song.lines[0].type == lineType.emptyLine) {
+			song.lines.shift();
+		}
+
 		return song;
 	}
 

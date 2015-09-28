@@ -12,38 +12,56 @@ var pdfRenderer = (function() {
 	var tabFont = 'Courier';
 
 	function box(doc, x1, y1, width, height) {
-		return;
+		doc.save();
+		doc.lineWidth(1);
+		doc.strokeColor('black');
 		doc.moveTo(x1, y1);
 		doc.lineTo(x1+width, y1);
 		doc.lineTo(x1+width, y1+height);
 		doc.lineTo(x1, y1+height);
 		doc.lineTo(x1, y1);
 		doc.stroke();
+		doc.restore();
 	}
 
 	function render(song, iframeId) {
-
+		var margins = 40;
 		var doc = new PDFDocument();
 		var stream = doc.pipe(blobStream());
 		Chord.renderer = Chord.renderers.pdf;
 		Chord.renderer.doc = doc;
+		//doc.page.margins = {top:margins, bottom:margins, left:margins, right:margins};
+		doc.usableWidth = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+		doc.usableHeight = doc.page.height - doc.page.margins.top - doc.page.margins.bottom;
+
+		//box(doc, doc.page.margins.left, doc.page.margins.top, doc.usableWidth, doc.usableHeight);
+		//doc.x = doc.page.margins.left;
+		//doc.y = doc.page.margins.top;
 
 		function writeLine(font, size, text, options) {
-
 			doc.font(font).fontSize(size);
-			box(doc, doc.x, doc.y, doc.widthOfString(text), doc.currentLineHeight(true))
+			var x = doc.x;
 			doc.text(text, options);
 		}
 
+
 		if (song.title) {
-			writeLine(boldFont, titleSize, song.title, { align:'center'});
+			writeLine(boldFont, titleSize, song.title, {align:'center'});
 		}
 		if (song.artist) {
-			writeLine(regularFont, artistSize, song.artist, { align:'center'});
+			writeLine(regularFont, artistSize, song.artist, {align:'center'});
 		}
 		
-		doc.translate(doc.page.margins.left, doc.page.margins.top + titleSize + artistSize*2);
 		renderChords(doc, song.chords);
+		doc.moveDown(); //One line space before the song starts...
+
+		//Calculate the space we have on this page...
+		var columnGap = 30;
+		var maxColumnWidth = (doc.usableWidth - columnGap) / 2;
+		var maxColumnHeight = doc.usableHeight - doc.y;
+		//box(doc, doc.x,doc.y, maxColumnWidth, maxColumnHeight);
+		//box(doc, doc.x+maxColumnWidth+columnGap,doc.y, maxColumnWidth, maxColumnHeight);
+		var startPosY = doc.y;
 
 		//Now we're down to the song itself...
 		for (var i = 0; i < song.lines.length; i++) {
@@ -53,7 +71,7 @@ var pdfRenderer = (function() {
 			} else if (l.type == lineType.chordLine) {
 				writeLine(boldFont, fontSize, l.text.replace(/ /g, '   ')); //Triple blank spaces in all-chord lines
 			} else if (l.type == lineType.chordAndTextLine) {
-				writeChordAndTextLines(doc, l);
+				writeChordAndTextLines(doc, l, doc.x);
 			} else if (l.type == lineType.tabLine) {
 				formatTabLine(l, true, false);
 				writeLine(tabFont, tabSize, l.text);
@@ -65,6 +83,10 @@ var pdfRenderer = (function() {
 			} else if (l.type == lineType.seperator) {
 				//Do nothing
 			}
+			if (doc.y > (650)) {
+				doc.y = startPosY;
+				doc.x = maxColumnWidth + columnGap;
+			}
 		}
 		doc.save()
 		   
@@ -74,11 +96,11 @@ var pdfRenderer = (function() {
 		});
 	}
 
-	function writeChordAndTextLines(doc, line) {
+	function writeChordAndTextLines(doc, line, offset) {
 		doc.font(regularFont).fontSize(fontSize);
 		var wholeText = '';
 
-		console.log('START X IS ' + doc.x);
+		//console.log('START X IS ' + doc.x);
 		var p0 = line.parts[0];
 		function chordWidth(c) {
 			doc.font(boldFont);
@@ -103,7 +125,7 @@ var pdfRenderer = (function() {
 			var p = line.parts[i];
 			if (p.isChord) {
 				p.cpos = doc.widthOfString(wholeText);
-				console.log('Set ' + p.c + ' at ' + p.cpos + ', which is width of ' + wholeText);
+				//console.log('Set ' + p.c + ' at ' + p.cpos + ', which is width of ' + wholeText);
 			}
 			wholeText += p.t;
 		}
@@ -113,7 +135,7 @@ var pdfRenderer = (function() {
 			var p = line.parts[i];
 			if (p.isChord) {
 				//console.log('Setting chord ' + p.c + ' at ' + p.cpos);
-				doc._fragment(p.c, p.cpos, doc.y, {});
+				doc._fragment(p.c, p.cpos+offset, doc.y, {});
 			}
 		}
 
@@ -133,16 +155,13 @@ var pdfRenderer = (function() {
 
 	function renderChords(doc, chords) {
 
-		var p = doc.page, m = doc.page.margins;
-		var availableWidth = p.width - m.left - m.right;
-		var availableHeight = p.height - m.top - m.bottom;
-
 		var chordSize = 2;
 		if (chords.length > 0) {
 			var info = chords[0].calculateDimensions(chordSize);
-			var chordsPerLine = Math.floor(availableWidth/info.width);
+			var chordsPerLine = Math.floor(doc.usableWidth/info.width);
 		}
 
+		doc.translate(doc.x, doc.y);
 		var chordLineCounts = getChordsPerLine(chordsPerLine, chords.length);
 
 
@@ -150,7 +169,7 @@ var pdfRenderer = (function() {
 			var chordCount = chordLineCounts[i];
 			var chords = chords.splice(0, chordCount);
 			var totalWidth = chords.length*info.width;
-			var startX = (availableWidth-totalWidth)/2;
+			var startX = (doc.usableWidth-totalWidth)/2;
 			doc.save();
 			doc.translate(startX, i*info.height);
 			for (var j = 0; j < chords.length; j++) {
@@ -161,7 +180,6 @@ var pdfRenderer = (function() {
 			}
 			doc.restore();
 		}
-
 		//Push the text position below the chords
 		doc.text('', 0, info.height*chordLineCounts.length);
 	}

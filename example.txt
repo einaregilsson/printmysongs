@@ -32,13 +32,13 @@ and then home
 CHORUS:
    A           D
 Oh it's such a perfect day,
-C#m                      D    D*
+C#m                      D
 I'm glad I spent it with you
 A           E
   Oh such a perfect day,
          F#m     E       D
 you just keep me hanging on,
-         F#m     E       D          D*
+         F#m     E       D
 you just keep me hanging on
 
 
@@ -62,7 +62,7 @@ CHORUS:
 -------
    A           D
 Oh it's such a perfect day,
-C#m                      D    D*
+C#m                      D
 I'm glad I spent it with you
 A           E
   Oh such a perfect day,
@@ -74,15 +74,15 @@ you just keep me hanging on
 
 OUTRO:
 ------
-C#m                 G                  D      D* A
+C#m                 G                  D      A
     You're going to reap just what you sow,
-C#m                 G                  D      D* A
+C#m                 G                  D      A
     You're going to reap just what you sow,
-C#m                 G                  D      D* A
+C#m                 G                  D      A
     You're going to reap just what you sow,
-C#m                 G                  D      D* A
+C#m                 G                  D      A
     You're going to reap just what you sow,
 
-C#m   G   D   D* A
+C#m   G   D   A
 
-C#m   G   D   D* A
+C#m   G   D   A

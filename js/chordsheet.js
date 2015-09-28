@@ -2,8 +2,8 @@ $(document).ready(function(){
 
 	function renderSheet() {
 		var text = $('#source-sheet').val();
-		var lines = songParser.parse(text);
-		pdfRenderer.render(lines, 'rendered-sheet');
+		var song = songParser.parse(text);
+		pdfRenderer.render(song, 'rendered-sheet');
 	}
 
 	$('#source-sheet').on('input', renderSheet);

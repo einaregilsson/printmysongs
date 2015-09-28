@@ -1,6 +1,5 @@
 
 var lineType = {
-	chordDef : 'chordDef',
 	title : 'title',
 	artist : 'artist',
 	heading : 'heading',
@@ -97,17 +96,17 @@ var songParser = (function() {
 
 	function parseSong(text) {
 
-		var undef;
 		var song = {
-			title:undef,
-			artist:undef,
-			chords:[]
+			title:null,
+			artist:null,
+			chords:[],
+			lines: []
 		};
 
 		var tempLines = text.split(/\r?\n/);
 		var lines = [];
 		for (var i in tempLines) {
-			lines.push({text:tempLines[i], type:null});
+			lines.push({text:tempLines[i], type:null, chords:[]});
 		}
 		var chords = {};
 		var foundTitle = false, foundArtist = false, startedChordLines = false;
@@ -115,9 +114,6 @@ var songParser = (function() {
 			var line = lines[i];
 			var chordLine = false;
 			while (s = Chord.searchRegex.exec(line.text)) {
-				if (!line.chords) {
-					line.chords = [];
-				}
 				chordLine = true;
 				var chord = new Chord(s[1], s[2], s[3] || s[4]);
 				chords[s[1]] = 1;
@@ -127,13 +123,11 @@ var songParser = (function() {
 				line.type = lineType.chordDef;
 				startedChordLines = true;
 			} else if (!startedChordLines && !foundTitle && !line.text.match(/^\s*$/)) {
-				line.type = lineType.title;
-				line.text = line.text.replace(/^\s*|\s*$/g, '').replace(/^(TITLE|SONG)\s*:\s*/i, '');
+				song.title = line.text.replace(/^\s*|\s*$/g, '').replace(/^(TITLE|SONG)\s*:\s*/i, '');
 				foundTitle = true;
 			} else if (!startedChordLines && !foundArtist && !line.text.match(/^\s*$/)) {
-				line.type = lineType.artist;
-				line.text = line.text.replace(/^\s*|\s*$/g, '').replace(/^(ARTIST|BAND)\s*:\s*/i, '');
-				foundTitle = true
+				song.artist = line.text.replace(/^\s*|\s*$/g, '').replace(/^(ARTIST|BAND)\s*:\s*/i, '');
+				foundArtist = true
 			} else if (line.text.match(/^\s*((?:INTRO|OUTRO|VERSE|CHORUS|BRIDGE|PRE-?CHORUS)(?:\s*\d*):?)\s*(?:\[(.*?)\])?$/gi)) {
 				line.text = RegExp.$1;
 				line.note = RegExp.$2;
@@ -167,23 +161,45 @@ var songParser = (function() {
 		}
 
 		//Second pass, combine chord and text lines that are together...
-		var resultLines = [];
+		var combinedLines = [];
 		for (var i=0; i< lines.length; i++) {
 			var l = lines[i];
+			if (l.type === null ){
+				continue; //Artist and title, skip
+			}
+
 			if (l.type == lineType.chordLine) {
 				var nextLine = lines[i+1];
 				if (nextLine && nextLine.type == lineType.text) {
-					resultLines.push(combineChordAndTextLine(l, nextLine));
+					combinedLines.push(combineChordAndTextLine(l, nextLine));
 					i++; //Skip the next text line
 				} else {
-					resultLines.push(l);
+					combinedLines.push(l);
 				}
 			} else {
-				resultLines.push(l);
+				combinedLines.push(l);
 			}
 		}
 
-		return resultLines;
+		//Third pass, move chords into .chords array in column order...
+		for (var i = 0; i < combinedLines.length; i++) {
+			var l = combinedLines[i];
+			console.log(JSON.stringify(l))
+			if (l.chords && l.chords.length > 0) {
+				for (var j=0; j < l.chords.length; j++) {
+					var c = l.chords[j];
+					c.sortRank = j*10 + i;
+					song.chords.push(c);
+				}
+			} else {
+				delete l.chords;
+				song.lines.push(l);
+			}
+		}
+		song.chords.sort(function(a,b) {
+			return a.sortRank-b.sortRank;
+		});
+		return song;
 	}
 
 	return {

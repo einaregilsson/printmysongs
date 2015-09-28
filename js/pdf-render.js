@@ -11,25 +11,43 @@ var pdfRenderer = (function() {
 	var boldFont = 'Helvetica-Bold';
 	var tabFont = 'Courier';
 
-	function render(lines, iframeId) {
+	function box(doc, x1, y1, width, height) {
+		return;
+		doc.moveTo(x1, y1);
+		doc.lineTo(x1+width, y1);
+		doc.lineTo(x1+width, y1+height);
+		doc.lineTo(x1, y1+height);
+		doc.lineTo(x1, y1);
+		doc.stroke();
+	}
+
+	function render(song, iframeId) {
 
 		var doc = new PDFDocument();
 		var stream = doc.pipe(blobStream());
-
-
 		Chord.renderer = Chord.renderers.pdf;
 		Chord.renderer.doc = doc;
 
-		var renderedChords = false;
-
-		var songParts = createSongParts(lines);
-
 		function writeLine(font, size, text, options) {
-			doc.font(font).fontSize(size).text(text, options);
+
+			doc.font(font).fontSize(size);
+			box(doc, doc.x, doc.y, doc.widthOfString(text), doc.currentLineHeight(true))
+			doc.text(text, options);
 		}
 
-		for (var i = 0; i < lines.length; i++) {
-			var l = lines[i];
+		if (song.title) {
+			writeLine(boldFont, titleSize, song.title, { align:'center'});
+		}
+		if (song.artist) {
+			writeLine(regularFont, artistSize, song.artist, { align:'center'});
+		}
+		
+		doc.translate(doc.page.margins.left, doc.page.margins.top + titleSize + artistSize*2);
+		renderChords(doc, song.chords);
+
+		//Now we're down to the song itself...
+		for (var i = 0; i < song.lines.length; i++) {
+			var l = song.lines[i];
 			if (l.type == lineType.text) {
 				writeLine(regularFont, fontSize, l.text);
 			} else if (l.type == lineType.chordLine) {
@@ -39,23 +57,11 @@ var pdfRenderer = (function() {
 			} else if (l.type == lineType.tabLine) {
 				formatTabLine(l, true, false);
 				writeLine(tabFont, tabSize, l.text);
-			} else if (l.type == lineType.title) {
-				writeLine(boldFont, titleSize, l.text, { align:'center'});
-			} else if (l.type == lineType.artist) {
-				writeLine(regularFont, artistSize, l.text, { align:'center'});
 			} else if (l.type == lineType.heading) {
 				writeLine(boldFont, headingSize, l.text);
 			} else if (l.type == lineType.emptyLine) {
 				doc.fontSize(fontSize);
 				doc.moveDown();
-			} else if (l.type == lineType.chordDef) {
-				if (renderedChords) {
-					continue;
-				}
-				doc.translate(doc.page.margins.left, doc.page.margins.top + titleSize + artistSize*2);
-				renderChords(doc, lines);
-				renderedChords = true;
-				
 			} else if (l.type == lineType.seperator) {
 				//Do nothing
 			}
@@ -125,25 +131,24 @@ var pdfRenderer = (function() {
 		}
 	}
 
-	function renderChords(doc, lines) {
+	function renderChords(doc, chords) {
 
 		var p = doc.page, m = doc.page.margins;
 		var availableWidth = p.width - m.left - m.right;
 		var availableHeight = p.height - m.top - m.bottom;
-		var sortedChords = getAllChordsSorted(lines);
 
 		var chordSize = 2;
-		if (sortedChords.length > 0) {
-			var info = sortedChords[0].calculateDimensions(chordSize);
+		if (chords.length > 0) {
+			var info = chords[0].calculateDimensions(chordSize);
 			var chordsPerLine = Math.floor(availableWidth/info.width);
 		}
 
-		var chordLineCounts = getChordsPerLine(chordsPerLine, sortedChords.length);
+		var chordLineCounts = getChordsPerLine(chordsPerLine, chords.length);
 
 
 		for (var i = 0; i < chordLineCounts.length; i++) {
 			var chordCount = chordLineCounts[i];
-			var chords = sortedChords.splice(0, chordCount);
+			var chords = chords.splice(0, chordCount);
 			var totalWidth = chords.length*info.width;
 			var startX = (availableWidth-totalWidth)/2;
 			doc.save();
@@ -184,25 +189,6 @@ var pdfRenderer = (function() {
 		}
 
 		return lines;
-	}
-
-	function getAllChordsSorted(lines) {
-		var chords = [];
-		for (var i = 0; i < lines.length; i++) {
-			var l = lines[i];
-			if (l.type == lineType.chordDef) {
-				for (var j=0; j < l.chords.length; j++) {
-					var c = l.chords[j];
-					c.sortRank = j*10 + i;
-					chords.push(c);
-				}
-			}
-		}
-		chords.sort(function(a,b) {
-			return a.sortRank-b.sortRank;
-		});
-
-		return chords;
 	}
 
 	function formatTabLine(line, isFirstLine, isLastLine) {
